@@ -203,7 +203,6 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
           <Logo className="h-10 w-auto" />
           <div className="flex-1 text-center">
             <h1 className="text-2xl font-bold text-on-surface">Road Worthy Lens</h1>
-            <p className="text-sm text-gray-500">Vehicle inspection management</p>
           </div>
           <div className="w-10"></div> {/* Spacer for balance */}
         </div>

@@ -15,11 +15,7 @@ export default function Logo({ className = "h-12 w-auto" }: LogoProps) {
   const logoUrl = settings?.logoUrl;
 
   if (!logoUrl || imageError) {
-    return (
-      <div className={`${className} flex items-center justify-center bg-primary text-primary-foreground rounded font-bold text-lg`}>
-        RWT
-      </div>
-    );
+    return null;
   }
 
   return (
