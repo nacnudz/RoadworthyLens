@@ -12,6 +12,7 @@ import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2 } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
+import PhotoGallery from "@/components/photo-gallery";
 
 interface Inspection {
   id: string;
@@ -43,6 +44,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const queryClient = useQueryClient();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
+  const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
+  const [selectedGalleryItem, setSelectedGalleryItem] = useState<string>("");
 
   const { data: currentInspection, isLoading: inspectionLoading } = useQuery<Inspection>({
     queryKey: ["/api/inspections", inspectionId],
@@ -347,12 +350,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                     disabled={photoCount === 0}
                     onClick={() => {
                       if (photoCount > 0) {
-                        // For now, show a toast with photo count
-                        // In future, this could open a photo gallery modal
-                        toast({
-                          title: "Photos for this item",
-                          description: `${photoCount} photo${photoCount > 1 ? 's' : ''} available for ${item}`,
-                        });
+                        setSelectedGalleryItem(item);
+                        setPhotoGalleryOpen(true);
                       }
                     }}
                   >
@@ -491,6 +490,21 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        itemName={selectedGalleryItem}
+        photos={photos[selectedGalleryItem] || []}
+        isOpen={photoGalleryOpen}
+        onClose={() => {
+          setPhotoGalleryOpen(false);
+          setSelectedGalleryItem("");
+        }}
+        onDeletePhoto={(photoIndex) => {
+          // Handle photo deletion here if needed
+          console.log(`Delete photo ${photoIndex} from ${selectedGalleryItem}`);
+        }}
+      />
     </div>
   );
 }

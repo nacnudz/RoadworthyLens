@@ -75,6 +75,15 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 
 ## Recent Updates (January 2025)
 
+### Photo Gallery Implementation
+- Created intuitive photo gallery component for viewing inspection item photos
+- Full-screen modal with navigation arrows for multiple photos per item
+- Thumbnail strip for quick photo selection when multiple photos exist
+- Download functionality for individual photos
+- Delete photo capability with proper confirmation
+- Enhanced user experience with photo count badges and smooth transitions
+- Integrated with existing inspection checklist view photos button
+
 ### Loading Animations Enhancement
 - Comprehensive loading states implemented across all user interactions
 - Skeleton loading components for dashboard inspection cards during data fetching
@@ -82,6 +91,14 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Smooth transition animations including hover effects and button scaling
 - Enhanced user feedback with disabled states during async operations
 - Improved perceived performance through progressive loading indicators
+
+### UI/UX Improvements
+- Centered logo and app name "Road Worthy Lens" in blue title bar
+- Removed settings button from header for cleaner interface
+- Enhanced completion dialog with color-coded buttons (green/red/dark grey)
+- Improved camera functionality with better error handling and permissions
+- Alphabetically sorted checklist with required items prioritized
+- Removed optional/required labels from completed inspections for cleaner view
 
 ## External Dependencies
 
