@@ -65,6 +65,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/in-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/completed"] });
       toast({
         title: "Success",
         description: "Inspection completed and uploaded to network folder",
@@ -81,7 +83,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     },
   });
 
-  if (!currentInspection) {
+  if (!currentInspection || !currentInspection.id) {
     return (
       <div className="p-4">
         <Card>
@@ -100,8 +102,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     );
   }
 
-  const checklistItems = (currentInspection?.checklistItems as Record<string, boolean>) || {};
-  const photos = (currentInspection?.photos as Record<string, string[]>) || {};
+  const checklistItems = (currentInspection.checklistItems as Record<string, boolean>) || {};
+  const photos = (currentInspection.photos as Record<string, string[]>) || {};
   const checklistSettings = (settings?.checklistItemSettings as Record<string, string>) || {};
 
   const getProgressInfo = () => {
@@ -137,7 +139,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   };
 
   const handleSaveInspection = () => {
-    if (currentInspection?.id) {
+    if (currentInspection.id) {
       saveInspectionMutation.mutate(currentInspection.id);
     }
   };
@@ -159,7 +161,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   };
 
   const handleFinalizeCompletion = () => {
-    if (currentInspection?.id) {
+    if (currentInspection.id) {
       completeInspectionMutation.mutate({ 
         inspectionId: currentInspection.id, 
         status: selectedResult 
@@ -204,7 +206,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Test Heading */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-on-surface bg-gray-50 px-4 py-2 rounded-lg border">
-          {currentInspection?.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection?.testNumber - 1}`}
+          {currentInspection.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection.testNumber - 1}`}
         </h3>
       </div>
 
@@ -238,13 +240,15 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 </div>
                 
                 <div className="flex space-x-2">
-                  <Button 
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark"
-                    onClick={() => onShowCamera(currentInspection.id, item)}
-                  >
-                    <Camera className="mr-2" />
-                    Take Photo
-                  </Button>
+                  {(currentInspection.testNumber === 1) && (
+                    <Button 
+                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark"
+                      onClick={() => onShowCamera(currentInspection.id, item)}
+                    >
+                      <Camera className="mr-2" />
+                      Take Photo
+                    </Button>
+                  )}
                   <Button 
                     variant="secondary"
                     size="icon"

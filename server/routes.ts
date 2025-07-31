@@ -4,7 +4,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { storage } from "./storage";
+import { storage } from "./sqlite-storage";
 import { insertInspectionSchema, insertSettingsSchema, CHECKLIST_ITEMS } from "@shared/schema";
 
 // Configure multer for photo uploads
@@ -217,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update inspection as completed
       const updatedInspection = await storage.updateInspection(id, {
-        completedAt: new Date()
+        completedAt: new Date().toISOString()
       });
 
       res.json({ 
@@ -291,8 +291,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new inspection with empty checklist and photos
       const retestData = {
         roadworthyNumber: originalInspection.roadworthyNumber,
-        clientName: originalInspection.clientName,
-        vehicleDescription: originalInspection.vehicleDescription,
+        clientName: originalInspection.clientName || "",
+        vehicleDescription: originalInspection.vehicleDescription || "",
         status: "in-progress" as const,
       };
 

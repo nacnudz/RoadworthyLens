@@ -1,27 +1,27 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const inspections = pgTable("inspections", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const inspections = sqliteTable("inspections", {
+  id: text("id").primaryKey(),
   roadworthyNumber: text("roadworthy_number").notNull(),
   clientName: text("client_name").default(""),
   vehicleDescription: text("vehicle_description").default(""),
   status: text("status").notNull().default("in-progress"), // "in-progress", "pass", "fail"
-  checklistItems: jsonb("checklist_items").notNull().default('{}'),
-  photos: jsonb("photos").notNull().default('{}'),
+  checklistItems: text("checklist_items", { mode: "json" }).notNull().default("{}"),
+  photos: text("photos", { mode: "json" }).notNull().default("{}"),
   testNumber: integer("test_number").notNull().default(1), // 1 for initial test, 2+ for retests
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").notNull().default(sql`now()`),
-  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+  completedAt: text("completed_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
-export const settings = pgTable("settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  checklistItemSettings: jsonb("checklist_item_settings").notNull().default('{}'),
+export const settings = sqliteTable("settings", {
+  id: text("id").primaryKey(),
+  checklistItemSettings: text("checklist_item_settings", { mode: "json" }).notNull().default("{}"),
   networkFolderPath: text("network_folder_path").default(""),
-  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export const insertInspectionSchema = createInsertSchema(inspections).omit({
