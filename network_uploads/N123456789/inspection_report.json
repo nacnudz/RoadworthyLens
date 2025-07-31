@@ -1,0 +1,30 @@
+{
+  "inspectionId": "211df927-a301-48d2-a7e3-66216999fc53",
+  "roadworthyNumber": "N123456789",
+  "clientName": "Chris",
+  "vehicleDescription": "Blue LDV T60",
+  "status": "fail",
+  "completedAt": "2025-07-31T13:25:39.062Z",
+  "checklistItems": {
+    "VIN": false,
+    "Under Vehicle": false,
+    "Vehicle on Hoist": false,
+    "Engine Bay": false,
+    "Compliance Plate": false,
+    "Front of Vehicle": false,
+    "Rear of Vehicle": false,
+    "Head Light Aimer": false,
+    "Dashboard Warning Lights": false,
+    "Odometer Before Road Test": false,
+    "Odometer After Road Test": false,
+    "Brake Test Print": false,
+    "Engine Number": false,
+    "Modification Plate": false,
+    "LPG Tank Plate": false,
+    "Tint Read Out": false,
+    "Noteworthy": false,
+    "Fault": false,
+    "Other": false
+  },
+  "photos": {}
+}

@@ -8,6 +8,8 @@ This is a full-stack web application for conducting roadworthy vehicle inspectio
 
 Preferred communication style: Simple, everyday language.
 
+Navigation flow: New inspections automatically set to "in-progress" status with no manual status selection required.
+
 ## System Architecture
 
 ### Frontend Architecture

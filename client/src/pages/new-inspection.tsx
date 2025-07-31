@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -28,7 +28,9 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
 
   const createInspectionMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest("POST", "/api/inspections", data);
+      // Ensure status is always "in-progress" for new inspections
+      const inspectionData = { ...data, status: "in-progress" };
+      const response = await apiRequest("POST", "/api/inspections", inspectionData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -134,25 +136,6 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
               {errors.vehicleDescription && (
                 <p className="text-destructive text-sm mt-1">{errors.vehicleDescription}</p>
               )}
-            </div>
-            
-            <div>
-              <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-                Initial Status
-              </Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value) => updateFormData("status", value)}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="pass">Pass</SelectItem>
-                  <SelectItem value="fail">Fail</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             
             <div className="flex space-x-3 pt-4">
