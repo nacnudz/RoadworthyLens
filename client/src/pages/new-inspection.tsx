@@ -4,9 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 interface NewInspectionProps {
   onCancel: () => void;
@@ -150,10 +150,17 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1 bg-primary hover:bg-primary-dark"
+                className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
                 disabled={createInspectionMutation.isPending}
               >
-                {createInspectionMutation.isPending ? "Creating..." : "Start Inspection"}
+                {createInspectionMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Start Inspection"
+                )}
               </Button>
             </div>
           </form>

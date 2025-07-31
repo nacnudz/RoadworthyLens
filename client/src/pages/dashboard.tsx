@@ -7,10 +7,11 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 
 interface Inspection {
@@ -94,6 +95,33 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
     },
   });
 
+  // Loading skeleton component for inspection cards
+  const InspectionCardSkeleton = () => (
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="flex space-x-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-12" />
+          </div>
+        </div>
+        <div className="space-y-2 mb-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+        <div className="flex space-x-2">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 w-9" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const getProgressInfo = (inspection: Inspection) => {
     const completed = Object.values(inspection.checklistItems || {}).filter(Boolean).length;
     const total = CHECKLIST_ITEMS.length;
@@ -169,13 +197,17 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
         <Card>
           <CardContent className="p-4">
             <div className="text-sm text-gray-600">In Progress</div>
-            <div className="text-2xl font-medium text-accent">{inProgressInspections.length}</div>
+            <div className="text-2xl font-medium text-accent">
+              {loadingInProgress ? <Skeleton className="h-8 w-8" /> : inProgressInspections.length}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-sm text-gray-600">Completed Today</div>
-            <div className="text-2xl font-medium text-secondary">{completedToday}</div>
+            <div className="text-2xl font-medium text-secondary">
+              {loadingCompleted ? <Skeleton className="h-8 w-8" /> : completedToday}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -183,7 +215,12 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
       {/* In Progress Inspections */}
       <section>
         <h2 className="text-lg font-medium mb-3 text-on-surface">In Progress</h2>
-        {inProgressInspections.length === 0 ? (
+        {loadingInProgress ? (
+          <>
+            <InspectionCardSkeleton />
+            <InspectionCardSkeleton />
+          </>
+        ) : inProgressInspections.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-gray-500">
               No inspections in progress
@@ -217,7 +254,7 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                     </div>
                     
                     <Button 
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary-dark"
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-200 hover:scale-105"
                       onClick={() => onOpenInspection(inspection.id)}
                     >
                       Continue Inspection
@@ -233,7 +270,12 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
       {/* Completed Inspections */}
       <section>
         <h2 className="text-lg font-medium mb-3 text-on-surface">Recent Completed</h2>
-        {completedInspections.length === 0 ? (
+        {loadingCompleted ? (
+          <>
+            <InspectionCardSkeleton />
+            <InspectionCardSkeleton />
+          </>
+        ) : completedInspections.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-gray-500">
               No completed inspections
@@ -259,23 +301,32 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                   <div className="flex space-x-2">
                     <Button 
                       variant="secondary" 
-                      className="flex-1"
+                      className="flex-1 transition-all duration-200 hover:scale-105"
                       onClick={() => onOpenInspection(inspection.id, true)}
                     >
                       View Report
                     </Button>
                     {inspection.status === "fail" && (
                       <Button 
-                        className="flex-1 bg-primary hover:bg-primary-dark"
+                        className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
                         onClick={() => handleRetest(inspection.id, inspection.roadworthyNumber)}
+                        disabled={createRetestMutation.isPending}
                       >
-                        Retest
+                        {createRetestMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Retest"
+                        )}
                       </Button>
                     )}
                     <Button 
                       variant="destructive" 
                       size="icon"
                       onClick={() => handleDeleteClick(inspection)}
+                      className="transition-all duration-200 hover:scale-105"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

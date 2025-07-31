@@ -7,7 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Camera, Images, CheckCircle, Save, ArrowLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
@@ -25,12 +26,12 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
 
-  const { data: currentInspection } = useQuery({
+  const { data: currentInspection, isLoading: inspectionLoading } = useQuery({
     queryKey: ["/api/inspections", inspectionId],
     enabled: !!inspectionId,
   });
 
-  const { data: settings } = useQuery({
+  const { data: settings, isLoading: settingsLoading } = useQuery({
     queryKey: ["/api/settings"],
   });
 
@@ -84,6 +85,45 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     },
   });
 
+  if (inspectionLoading || settingsLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        {/* Header skeleton */}
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-40" />
+          </CardContent>
+        </Card>
+        
+        {/* Progress skeleton */}
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="h-2 w-full" />
+          </CardContent>
+        </Card>
+        
+        {/* Checklist items skeleton */}
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-4 space-y-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex space-x-2">
+                <Skeleton className="h-9 flex-1" />
+                <Skeleton className="h-9 w-9" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   if (!currentInspection || !currentInspection.id) {
     return (
       <div className="p-4">
@@ -92,7 +132,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <p className="text-gray-500">No inspection found. Please select an inspection from the dashboard.</p>
             <Button 
               onClick={onClose}
-              className="mt-4 bg-primary text-primary-foreground hover:bg-primary-dark"
+              className="mt-4 bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-200"
             >
               <ArrowLeft className="mr-2" />
               Back to Dashboard
@@ -253,7 +293,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 <div className="flex space-x-2">
                   {!isViewOnly && currentInspection.status === "in-progress" && (
                     <Button 
-                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark"
+                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-200 hover:scale-105"
                       onClick={() => onShowCamera(currentInspection.id, item)}
                     >
                       <Camera className="mr-2" />
@@ -280,7 +320,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           <Card>
             <CardContent className="p-4">
               <Button 
-                className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
+                className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600 transition-all duration-200"
                 onClick={onClose}
               >
                 <ArrowLeft className="mr-2" />
@@ -293,12 +333,21 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <Card>
               <CardContent className="p-4">
                 <Button 
-                  className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
+                  className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600 transition-all duration-200"
                   onClick={handleSaveInspection}
                   disabled={saveInspectionMutation.isPending}
                 >
-                  <Save className="mr-2" />
-                  {saveInspectionMutation.isPending ? "Saving..." : "Save Inspection"}
+                  {saveInspectionMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2" />
+                      Save Inspection
+                    </>
+                  )}
                 </Button>
                 <p className="text-xs text-gray-500 text-center mt-2">
                   Save progress and return to dashboard
@@ -309,12 +358,21 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <Card>
               <CardContent className="p-4">
                 <Button 
-                  className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark"
+                  className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark transition-all duration-200"
                   onClick={handleCompleteInspection}
                   disabled={!canComplete() || completeInspectionMutation.isPending}
                 >
-                  <CheckCircle className="mr-2" />
-                  {completeInspectionMutation.isPending ? "Completing..." : "Complete Inspection"}
+                  {completeInspectionMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2" />
+                      Complete Inspection
+                    </>
+                  )}
                 </Button>
                 <p className="text-xs text-gray-500 text-center mt-2">
                   Finalize and upload all photos to network folder
@@ -360,10 +418,17 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               </Button>
               <Button 
                 onClick={handleFinalizeCompletion}
-                className="flex-1 bg-primary hover:bg-primary-dark"
+                className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200"
                 disabled={completeInspectionMutation.isPending}
               >
-                {completeInspectionMutation.isPending ? "Completing..." : "Done"}
+                {completeInspectionMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Completing...
+                  </>
+                ) : (
+                  "Done"
+                )}
               </Button>
             </div>
           </div>
