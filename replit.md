@@ -94,7 +94,7 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Improved perceived performance through progressive loading indicators
 
 ### UI/UX Improvements
-- Centered logo and app name "Road Worthy Lens" in blue title bar
+- Updated header design: removed logo, changed app name to "Road Worthy Tests" with subtitle "Vehicle Inspection Management"
 - Removed settings button from header for cleaner interface
 - Enhanced completion dialog with color-coded buttons (green/red/dark grey)
 - Improved camera functionality with better error handling and permissions
