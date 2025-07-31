@@ -303,8 +303,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedPhotos[itemName] = updatedItemPhotos;
       }
 
+      // Update checklist completion status if no photos remain for this item
+      const checklistItems = (inspection.checklistItems as Record<string, boolean>) || {};
+      let updatedChecklistItems = { ...checklistItems };
+      
+      if (updatedItemPhotos.length === 0) {
+        updatedChecklistItems[itemName] = false;
+      }
+
       const updatedInspection = await storage.updateInspection(id, {
-        photos: updatedPhotos
+        photos: updatedPhotos,
+        checklistItems: updatedChecklistItems
       });
 
       res.json(updatedInspection);

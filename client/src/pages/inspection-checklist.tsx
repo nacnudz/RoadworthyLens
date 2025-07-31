@@ -334,30 +334,45 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                   )}
                 </div>
                 
-                <div className="flex w-full justify-between gap-2">
+                <div className="flex w-full gap-2">
                   {!isViewOnly && currentInspection.status === "in-progress" && (
+                    <>
+                      <Button 
+                        className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark text-xs px-2"
+                        onClick={() => onShowCamera(currentInspection.id, item)}
+                      >
+                        <Camera className="mr-1 h-3 w-3" />
+                        Take Photo
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        onClick={() => {
+                          setSelectedGalleryItem(item);
+                          setPhotoGalleryOpen(true);
+                        }}
+                        className="flex-1 text-xs px-2"
+                      >
+                        <Images className="mr-1 h-3 w-3" />
+                        View {photoCount > 0 ? `(${photoCount})` : ''}
+                      </Button>
+                    </>
+                  )}
+                  {isViewOnly && (
                     <Button 
-                      className="w-1/4 bg-primary text-primary-foreground hover:bg-primary-dark text-xs px-2"
-                      onClick={() => onShowCamera(currentInspection.id, item)}
+                      variant="secondary"
+                      disabled={photoCount === 0}
+                      onClick={() => {
+                        if (photoCount > 0) {
+                          setSelectedGalleryItem(item);
+                          setPhotoGalleryOpen(true);
+                        }
+                      }}
+                      className="w-full text-xs px-2"
                     >
-                      <Camera className="mr-1 h-3 w-3" />
-                      Take Photo
+                      <Images className="mr-1 h-3 w-3" />
+                      View Photos {photoCount > 0 ? `(${photoCount})` : ''}
                     </Button>
                   )}
-                  <Button 
-                    variant="secondary"
-                    disabled={photoCount === 0}
-                    onClick={() => {
-                      if (photoCount > 0) {
-                        setSelectedGalleryItem(item);
-                        setPhotoGalleryOpen(true);
-                      }
-                    }}
-                    className="w-1/4 text-xs px-2"
-                  >
-                    <Images className="mr-1 h-3 w-3" />
-                    View Photos
-                  </Button>
                 </div>
               </CardContent>
             </Card>
