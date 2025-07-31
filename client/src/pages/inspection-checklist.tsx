@@ -13,6 +13,24 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 
+interface Inspection {
+  id: string;
+  roadworthyNumber: string;
+  clientName: string;
+  vehicleDescription: string;
+  status: string;
+  checklistItems: Record<string, boolean>;
+  photos: Record<string, string[]>;
+  completedAt?: string;
+  createdAt: string;
+  testNumber: number;
+}
+
+interface Settings {
+  id: string;
+  checklistItemSettings: Record<string, string>;
+}
+
 interface InspectionChecklistProps {
   inspectionId: string | null;
   onShowCamera: (inspectionId: string, itemName: string) => void;
@@ -26,12 +44,12 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
 
-  const { data: currentInspection, isLoading: inspectionLoading } = useQuery({
+  const { data: currentInspection, isLoading: inspectionLoading } = useQuery<Inspection>({
     queryKey: ["/api/inspections", inspectionId],
     enabled: !!inspectionId,
   });
 
-  const { data: settings, isLoading: settingsLoading } = useQuery({
+  const { data: settings, isLoading: settingsLoading } = useQuery<Settings>({
     queryKey: ["/api/settings"],
   });
 
@@ -454,7 +472,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               <Button 
                 variant="outline" 
                 onClick={() => setShowCompletionDialog(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300"
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
                 disabled={completeInspectionMutation.isPending}
               >
                 Cancel

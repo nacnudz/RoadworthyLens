@@ -70,13 +70,86 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         stream.getTracks().forEach(track => track.stop());
       }
       
-      if (!videoRef.current) return;
+      if (!videoRef.current) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported by this browser');
+      }
+
+      // Try different camera configurations for better compatibility
+      const constraints = [
+        // Try environment camera first (back camera on mobile)
+        {
+          video: { 
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          }
+        },
+        // Fallback to any camera
+        {
+          video: { 
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          }
+        },
+        // Basic fallback
+        {
+          video: true
+        }
+      ];
+
+      let newStream: MediaStream | null = null;
       
-      // Import camera functions dynamically
-      const { startCamera: startCameraLib } = await import("@/lib/camera");
-      const newStream = await startCameraLib(videoRef.current);
-      setStream(newStream);
-      setIsLoading(false);
+      for (const constraint of constraints) {
+        try {
+          newStream = await navigator.mediaDevices.getUserMedia(constraint);
+          break;
+        } catch (err) {
+          console.log('Camera constraint failed, trying next:', err);
+          continue;
+        }
+      }
+
+      if (!newStream) {
+        throw new Error('No camera available');
+      }
+      
+      videoRef.current.srcObject = newStream;
+      
+      // Ensure video loads and plays
+      await new Promise<void>((resolve, reject) => {
+        const video = videoRef.current!;
+        
+        const onLoadedMetadata = () => {
+          video.play()
+            .then(() => {
+              setStream(newStream);
+              setIsLoading(false);
+              resolve();
+            })
+            .catch(reject);
+        };
+        
+        const onError = () => reject(new Error('Video element error'));
+        
+        video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+        video.addEventListener('error', onError, { once: true });
+        
+        // Set a timeout in case metadata doesn't load
+        setTimeout(() => {
+          video.removeEventListener('loadedmetadata', onLoadedMetadata);
+          video.removeEventListener('error', onError);
+          if (video.readyState === 0) {
+            reject(new Error('Video failed to load'));
+          }
+        }, 10000);
+      });
+      
     } catch (error) {
       console.error("Failed to start camera:", error);
       toast({
@@ -125,6 +198,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
           <div className="text-white text-center p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-lg">Starting camera...</p>
+            <p className="text-sm mt-2 opacity-75">Please allow camera access when prompted</p>
           </div>
         ) : (
           <>
