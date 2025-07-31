@@ -334,19 +334,18 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                   )}
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex w-full justify-between gap-2">
                   {!isViewOnly && currentInspection.status === "in-progress" && (
                     <Button 
-                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-200 hover:scale-105"
+                      className="w-1/4 bg-primary text-primary-foreground hover:bg-primary-dark text-xs px-2"
                       onClick={() => onShowCamera(currentInspection.id, item)}
                     >
-                      <Camera className="mr-2" />
+                      <Camera className="mr-1 h-3 w-3" />
                       Take Photo
                     </Button>
                   )}
                   <Button 
                     variant="secondary"
-                    size="icon"
                     disabled={photoCount === 0}
                     onClick={() => {
                       if (photoCount > 0) {
@@ -354,8 +353,10 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                         setPhotoGalleryOpen(true);
                       }
                     }}
+                    className="w-1/4 text-xs px-2"
                   >
-                    <Images />
+                    <Images className="mr-1 h-3 w-3" />
+                    View Photos
                   </Button>
                 </div>
               </CardContent>

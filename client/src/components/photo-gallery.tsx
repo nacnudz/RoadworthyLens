@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, ChevronLeft, ChevronRight, Download, Trash2 } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface PhotoGalleryProps {
@@ -23,33 +23,7 @@ export default function PhotoGallery({
   const { toast } = useToast();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const handlePrevious = () => {
-    setCurrentPhotoIndex((prev) => 
-      prev === 0 ? photos.length - 1 : prev - 1
-    );
-  };
 
-  const handleNext = () => {
-    setCurrentPhotoIndex((prev) => 
-      prev === photos.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const handleDownload = () => {
-    if (photos[currentPhotoIndex]) {
-      const link = document.createElement('a');
-      link.href = photos[currentPhotoIndex];
-      link.download = `${itemName}_photo_${currentPhotoIndex + 1}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Download Started",
-        description: `Photo ${currentPhotoIndex + 1} is being downloaded`,
-      });
-    }
-  };
 
   const handleDelete = () => {
     if (onDeletePhoto) {
@@ -107,28 +81,6 @@ export default function PhotoGallery({
               });
             }}
           />
-
-          {/* Navigation arrows */}
-          {photos.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handlePrevious}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNext}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </>
-          )}
         </div>
 
         {/* Photo thumbnails */}
@@ -139,10 +91,10 @@ export default function PhotoGallery({
                 <button
                   key={index}
                   onClick={() => setCurrentPhotoIndex(index)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
                     index === currentPhotoIndex
-                      ? "border-blue-500 ring-2 ring-blue-500/50"
-                      : "border-gray-600 hover:border-gray-400"
+                      ? "border-blue-500"
+                      : "border-gray-600"
                   }`}
                 >
                   <img
@@ -157,17 +109,9 @@ export default function PhotoGallery({
         )}
 
         {/* Action buttons */}
-        <div className="p-4 bg-black/80 border-t border-gray-700">
-          <div className="flex justify-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleDownload}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/30"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            {onDeletePhoto && (
+        {onDeletePhoto && (
+          <div className="p-4 bg-black/80 border-t border-gray-700">
+            <div className="flex justify-center">
               <Button
                 variant="outline"
                 onClick={handleDelete}
@@ -176,9 +120,9 @@ export default function PhotoGallery({
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </Button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
