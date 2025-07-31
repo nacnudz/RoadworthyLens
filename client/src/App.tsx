@@ -28,9 +28,9 @@ function Router() {
     setCurrentView("checklist");
   };
 
-  const openInspection = (inspectionId: string) => {
+  const openInspection = (inspectionId: string, isViewOnly = false) => {
     setCurrentInspectionId(inspectionId);
-    setCurrentView("checklist");
+    setCurrentView(isViewOnly ? "view-report" : "checklist");
   };
 
   const closeInspection = () => {
@@ -51,6 +51,7 @@ function Router() {
         {currentView === "dashboard" && <Dashboard onOpenInspection={openInspection} />}
         {currentView === "new-inspection" && <NewInspection onCancel={() => setCurrentView("dashboard")} onComplete={handleNewInspectionComplete} />}
         {currentView === "checklist" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} />}
+        {currentView === "view-report" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} isViewOnly={true} />}
         {currentView === "settings" && <Settings onCancel={() => setCurrentView("dashboard")} />}
         {currentView === "camera" && cameraData && (
           <CameraInterface 

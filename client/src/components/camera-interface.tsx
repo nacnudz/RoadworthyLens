@@ -65,21 +65,33 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const startCamera = async () => {
     try {
       setIsLoading(true);
-      const newStream = await navigator.mediaDevices.getUserMedia({
+      // Stop existing stream first
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      const constraints = {
         video: {
           facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 1920, min: 640 },
+          height: { ideal: 1080, min: 480 }
         },
         audio: false,
-      });
+      };
+      
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
 
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setIsLoading(false);
+        };
+      } else {
+        setIsLoading(false);
       }
       
       setStream(newStream);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error accessing camera:", error);
       toast({

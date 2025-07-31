@@ -27,8 +27,8 @@ const createTablesSQL = `
     photos TEXT NOT NULL DEFAULT '{}',
     test_number INTEGER NOT NULL DEFAULT 1,
     completed_at TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS settings (

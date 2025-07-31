@@ -16,9 +16,10 @@ interface InspectionChecklistProps {
   inspectionId: string | null;
   onShowCamera: (inspectionId: string, itemName: string) => void;
   onClose: () => void;
+  isViewOnly?: boolean;
 }
 
-export default function InspectionChecklist({ inspectionId, onShowCamera, onClose }: InspectionChecklistProps) {
+export default function InspectionChecklist({ inspectionId, onShowCamera, onClose, isViewOnly = false }: InspectionChecklistProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
@@ -208,6 +209,16 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         <h3 className="text-lg font-semibold text-on-surface bg-gray-50 px-4 py-2 rounded-lg border">
           {currentInspection.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection.testNumber - 1}`}
         </h3>
+        {currentInspection.createdAt && (
+          <p className="text-sm text-gray-500 mt-2">
+            Created: {new Date(currentInspection.createdAt).toLocaleDateString()} {new Date(currentInspection.createdAt).toLocaleTimeString()}
+          </p>
+        )}
+        {currentInspection.completedAt && (
+          <p className="text-sm text-gray-500">
+            Completed: {new Date(currentInspection.completedAt).toLocaleDateString()} {new Date(currentInspection.completedAt).toLocaleTimeString()}
+          </p>
+        )}
       </div>
 
       {/* Checklist Items */}
@@ -240,7 +251,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 </div>
                 
                 <div className="flex space-x-2">
-                  {(currentInspection.testNumber === 1) && (
+                  {!isViewOnly && currentInspection.status === "in-progress" && (
                     <Button 
                       className="flex-1 bg-primary text-primary-foreground hover:bg-primary-dark"
                       onClick={() => onShowCamera(currentInspection.id, item)}
@@ -265,37 +276,53 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Action Buttons */}
       <div className="mt-6 space-y-3">
-        <Card>
-          <CardContent className="p-4">
-            <Button 
-              className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
-              onClick={handleSaveInspection}
-              disabled={saveInspectionMutation.isPending}
-            >
-              <Save className="mr-2" />
-              {saveInspectionMutation.isPending ? "Saving..." : "Save Inspection"}
-            </Button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              Save progress and return to dashboard
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <Button 
-              className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark"
-              onClick={handleCompleteInspection}
-              disabled={!canComplete() || completeInspectionMutation.isPending}
-            >
-              <CheckCircle className="mr-2" />
-              {completeInspectionMutation.isPending ? "Completing..." : "Complete Inspection"}
-            </Button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              Finalize and upload all photos to network folder
-            </p>
-          </CardContent>
-        </Card>
+        {isViewOnly ? (
+          <Card>
+            <CardContent className="p-4">
+              <Button 
+                className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
+                onClick={onClose}
+              >
+                <ArrowLeft className="mr-2" />
+                Close Report
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <Card>
+              <CardContent className="p-4">
+                <Button 
+                  className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
+                  onClick={handleSaveInspection}
+                  disabled={saveInspectionMutation.isPending}
+                >
+                  <Save className="mr-2" />
+                  {saveInspectionMutation.isPending ? "Saving..." : "Save Inspection"}
+                </Button>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Save progress and return to dashboard
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <Button 
+                  className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark"
+                  onClick={handleCompleteInspection}
+                  disabled={!canComplete() || completeInspectionMutation.isPending}
+                >
+                  <CheckCircle className="mr-2" />
+                  {completeInspectionMutation.isPending ? "Completing..." : "Complete Inspection"}
+                </Button>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Finalize and upload all photos to network folder
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Completion Dialog */}

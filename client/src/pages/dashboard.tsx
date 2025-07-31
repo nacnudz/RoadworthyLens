@@ -26,7 +26,7 @@ interface Inspection {
 }
 
 interface DashboardProps {
-  onOpenInspection: (inspectionId: string) => void;
+  onOpenInspection: (inspectionId: string, isViewOnly?: boolean) => void;
 }
 
 export default function Dashboard({ onOpenInspection }: DashboardProps) {
@@ -260,7 +260,7 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                     <Button 
                       variant="secondary" 
                       className="flex-1"
-                      onClick={() => onOpenInspection(inspection.id)}
+                      onClick={() => onOpenInspection(inspection.id, true)}
                     >
                       View Report
                     </Button>
