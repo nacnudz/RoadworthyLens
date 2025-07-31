@@ -202,7 +202,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
         <div className="flex items-center justify-between">
           <Logo className="h-10 w-auto" />
           <div className="flex-1 text-center">
-            <h1 className="text-2xl font-bold text-on-surface">Road Worthy Lens</h1>
+            <h1 className="text-2xl font-bold text-on-surface">Road Worthy Tests</h1>
           </div>
           <div className="w-10"></div> {/* Spacer for balance */}
         </div>
@@ -357,7 +357,6 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       </section>
       
       </div>
-      
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
