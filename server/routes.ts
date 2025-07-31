@@ -1,0 +1,260 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { storage } from "./storage";
+import { insertInspectionSchema, insertSettingsSchema, CHECKLIST_ITEMS } from "@shared/schema";
+
+// Configure multer for photo uploads
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+      const { inspectionId, itemName, photoIndex } = req.body;
+      const ext = path.extname(file.originalname);
+      const filename = `${itemName}_${photoIndex}${ext}`;
+      cb(null, filename);
+    }
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  }
+});
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Get all inspections
+  app.get("/api/inspections", async (req, res) => {
+    try {
+      const inspections = await storage.getAllInspections();
+      res.json(inspections);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inspections" });
+    }
+  });
+
+  // Get in-progress inspections
+  app.get("/api/inspections/in-progress", async (req, res) => {
+    try {
+      const inspections = await storage.getInProgressInspections();
+      res.json(inspections);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch in-progress inspections" });
+    }
+  });
+
+  // Get completed inspections
+  app.get("/api/inspections/completed", async (req, res) => {
+    try {
+      const inspections = await storage.getCompletedInspections();
+      res.json(inspections);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch completed inspections" });
+    }
+  });
+
+  // Get single inspection
+  app.get("/api/inspections/:id", async (req, res) => {
+    try {
+      const inspection = await storage.getInspection(req.params.id);
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+      res.json(inspection);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inspection" });
+    }
+  });
+
+  // Create new inspection
+  app.post("/api/inspections", async (req, res) => {
+    try {
+      const validatedData = insertInspectionSchema.parse(req.body);
+      
+      // Check if roadworthy number already exists
+      const existing = await storage.getInspectionByRoadworthyNumber(validatedData.roadworthyNumber);
+      if (existing) {
+        return res.status(400).json({ message: "Roadworthy number already exists" });
+      }
+
+      const inspection = await storage.createInspection(validatedData);
+      res.status(201).json(inspection);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create inspection" });
+    }
+  });
+
+  // Update inspection
+  app.patch("/api/inspections/:id", async (req, res) => {
+    try {
+      const updates = req.body;
+      const inspection = await storage.updateInspection(req.params.id, updates);
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+      res.json(inspection);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update inspection" });
+    }
+  });
+
+  // Upload photo for inspection item
+  app.post("/api/inspections/:id/photos", upload.single("photo"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { itemName } = req.body;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No photo uploaded" });
+      }
+
+      if (!CHECKLIST_ITEMS.includes(itemName as any)) {
+        return res.status(400).json({ message: "Invalid checklist item" });
+      }
+
+      const inspection = await storage.getInspection(id);
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+
+      // Update photos record
+      const photos = inspection.photos as Record<string, string[]> || {};
+      if (!photos[itemName]) {
+        photos[itemName] = [];
+      }
+      photos[itemName].push(req.file.filename);
+
+      // Update checklist item as completed
+      const checklistItems = inspection.checklistItems as Record<string, boolean> || {};
+      checklistItems[itemName] = true;
+
+      const updatedInspection = await storage.updateInspection(id, {
+        photos,
+        checklistItems
+      });
+
+      res.json({ 
+        message: "Photo uploaded successfully",
+        filename: req.file.filename,
+        inspection: updatedInspection
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload photo" });
+    }
+  });
+
+  // Complete inspection and upload to network folder
+  app.post("/api/inspections/:id/complete", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const inspection = await storage.getInspection(id);
+      
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+
+      // Get current settings to check required items
+      const settings = await storage.getSettings();
+      const checklistSettings = settings.checklistItemSettings as Record<string, string>;
+      const checklistItems = inspection.checklistItems as Record<string, boolean>;
+
+      // Validate all required items are completed
+      const missingRequiredItems = CHECKLIST_ITEMS.filter(item => 
+        checklistSettings[item] === "required" && !checklistItems[item]
+      );
+
+      if (missingRequiredItems.length > 0) {
+        return res.status(400).json({ 
+          message: "Missing required items", 
+          missingItems: missingRequiredItems 
+        });
+      }
+
+      // Create network folder structure
+      const networkFolderPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
+      if (!fs.existsSync(networkFolderPath)) {
+        fs.mkdirSync(networkFolderPath, { recursive: true });
+      }
+
+      // Copy all photos to network folder
+      const photos = inspection.photos as Record<string, string[]>;
+      for (const [itemName, photoFiles] of Object.entries(photos)) {
+        for (const photoFile of photoFiles) {
+          const sourcePath = path.join(uploadDir, photoFile);
+          const destPath = path.join(networkFolderPath, photoFile);
+          if (fs.existsSync(sourcePath)) {
+            fs.copyFileSync(sourcePath, destPath);
+          }
+        }
+      }
+
+      // Create inspection report
+      const reportData = {
+        inspectionId: inspection.id,
+        roadworthyNumber: inspection.roadworthyNumber,
+        clientName: inspection.clientName,
+        vehicleDescription: inspection.vehicleDescription,
+        status: inspection.status,
+        completedAt: new Date().toISOString(),
+        checklistItems: inspection.checklistItems,
+        photos: inspection.photos
+      };
+
+      fs.writeFileSync(
+        path.join(networkFolderPath, "inspection_report.json"),
+        JSON.stringify(reportData, null, 2)
+      );
+
+      // Update inspection as completed
+      const updatedInspection = await storage.updateInspection(id, {
+        completedAt: new Date()
+      });
+
+      res.json({ 
+        message: "Inspection completed and uploaded to network folder",
+        networkPath: networkFolderPath,
+        inspection: updatedInspection
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to complete inspection" });
+    }
+  });
+
+  // Get settings
+  app.get("/api/settings", async (req, res) => {
+    try {
+      const settings = await storage.getSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  // Update settings
+  app.patch("/api/settings", async (req, res) => {
+    try {
+      const settings = await storage.updateSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
+  // Get checklist items
+  app.get("/api/checklist-items", (req, res) => {
+    res.json(CHECKLIST_ITEMS);
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}

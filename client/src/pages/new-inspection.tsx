@@ -1,0 +1,191 @@
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+
+interface NewInspectionProps {
+  onCancel: () => void;
+  onComplete: () => void;
+}
+
+export default function NewInspection({ onCancel, onComplete }: NewInspectionProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [formData, setFormData] = useState({
+    roadworthyNumber: "",
+    clientName: "",
+    vehicleDescription: "",
+    status: "in-progress"
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const createInspectionMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest("POST", "/api/inspections", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/in-progress"] });
+      toast({
+        title: "Success",
+        description: "Inspection created successfully",
+      });
+      onComplete();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create inspection",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.roadworthyNumber.trim()) {
+      newErrors.roadworthyNumber = "Roadworthy number is required";
+    }
+    
+    if (!formData.clientName.trim()) {
+      newErrors.clientName = "Client name is required";
+    }
+    
+    if (!formData.vehicleDescription.trim()) {
+      newErrors.vehicleDescription = "Vehicle description is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    createInspectionMutation.mutate(formData);
+  };
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-xl font-medium mb-6 text-on-surface">New Inspection</h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="roadworthyNumber" className="text-sm font-medium text-gray-700">
+                Roadworthy Number <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="roadworthyNumber"
+                type="text"
+                value={formData.roadworthyNumber}
+                onChange={(e) => updateFormData("roadworthyNumber", e.target.value)}
+                placeholder="e.g., RWC-2024-005"
+                className="mt-2"
+                required
+              />
+              {errors.roadworthyNumber && (
+                <p className="text-destructive text-sm mt-1">{errors.roadworthyNumber}</p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="clientName" className="text-sm font-medium text-gray-700">
+                Client Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="clientName"
+                type="text"
+                value={formData.clientName}
+                onChange={(e) => updateFormData("clientName", e.target.value)}
+                placeholder="Enter client name"
+                className="mt-2"
+                required
+              />
+              {errors.clientName && (
+                <p className="text-destructive text-sm mt-1">{errors.clientName}</p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="vehicleDescription" className="text-sm font-medium text-gray-700">
+                Vehicle Description <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="vehicleDescription"
+                type="text"
+                value={formData.vehicleDescription}
+                onChange={(e) => updateFormData("vehicleDescription", e.target.value)}
+                placeholder="e.g., 2019 Toyota Camry - ABC123"
+                className="mt-2"
+                required
+              />
+              {errors.vehicleDescription && (
+                <p className="text-destructive text-sm mt-1">{errors.vehicleDescription}</p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                Initial Status
+              </Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value) => updateFormData("status", value)}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="pass">Pass</SelectItem>
+                  <SelectItem value="fail">Fail</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex space-x-3 pt-4">
+              <Button 
+                type="button" 
+                variant="secondary"
+                onClick={onCancel} 
+                className="flex-1"
+                disabled={createInspectionMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 bg-primary hover:bg-primary-dark"
+                disabled={createInspectionMutation.isPending}
+              >
+                {createInspectionMutation.isPending ? "Creating..." : "Start Inspection"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
