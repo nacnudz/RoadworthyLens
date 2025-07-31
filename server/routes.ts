@@ -271,6 +271,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete photo from inspection
+  app.delete("/api/inspections/:id/photos/:itemName/:photoIndex", async (req, res) => {
+    try {
+      const { id, itemName, photoIndex } = req.params;
+      const photoIndexNum = parseInt(photoIndex, 10);
+
+      if (isNaN(photoIndexNum) || photoIndexNum < 0) {
+        return res.status(400).json({ error: "Valid photo index is required" });
+      }
+
+      const inspection = await storage.getInspection(id);
+      if (!inspection) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+
+      const photos = inspection.photos || {};
+      const itemPhotos = photos[itemName] || [];
+
+      if (photoIndexNum >= itemPhotos.length) {
+        return res.status(404).json({ error: "Photo not found" });
+      }
+
+      // Remove the photo from the array
+      const updatedItemPhotos = itemPhotos.filter((_, index) => index !== photoIndexNum);
+      const updatedPhotos = { ...photos };
+      
+      if (updatedItemPhotos.length === 0) {
+        delete updatedPhotos[itemName];
+      } else {
+        updatedPhotos[itemName] = updatedItemPhotos;
+      }
+
+      // Update checklist completion status if no photos remain
+      const checklist = inspection.checklist || {};
+      let updatedChecklist = { ...checklist };
+      
+      if (updatedItemPhotos.length === 0) {
+        updatedChecklist[itemName] = false;
+      }
+
+      const updatedInspection = await storage.updateInspection(id, {
+        photos: updatedPhotos,
+        checklist: updatedChecklist
+      });
+
+      res.json(updatedInspection);
+    } catch (error) {
+      console.error("Failed to delete photo:", error);
+      res.status(500).json({ error: "Failed to delete photo" });
+    }
+  });
+
   // Create retest from existing inspection  
   app.post("/api/inspections/:id/retest", async (req, res) => {
     try {

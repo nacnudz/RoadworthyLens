@@ -501,9 +501,27 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           setPhotoGalleryOpen(false);
           setSelectedGalleryItem("");
         }}
-        onDeletePhoto={(photoIndex) => {
-          // Handle photo deletion here if needed
-          console.log(`Delete photo ${photoIndex} from ${selectedGalleryItem}`);
+        onDeletePhoto={async (photoIndex) => {
+          try {
+            await apiRequest(`/api/inspections/${inspectionId}/photos/${encodeURIComponent(selectedGalleryItem)}/${photoIndex}`, {
+              method: 'DELETE'
+            });
+            
+            // Refetch inspection data to update photo counts and checklist status
+            queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspectionId}`] });
+            
+            toast({
+              title: "Photo Deleted",
+              description: `Photo ${photoIndex + 1} has been removed from ${selectedGalleryItem}`,
+            });
+          } catch (error) {
+            console.error('Failed to delete photo:', error);
+            toast({
+              title: "Delete Failed",
+              description: "Could not delete photo. Please try again.",
+              variant: "destructive",
+            });
+          }
         }}
       />
     </div>
