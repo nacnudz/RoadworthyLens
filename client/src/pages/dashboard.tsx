@@ -1,9 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Plus, Trash2 } from "lucide-react";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 
 interface Inspection {
@@ -24,6 +31,12 @@ interface DashboardProps {
 
 export default function Dashboard({ onOpenInspection }: DashboardProps) {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { data: inProgressInspections = [], isLoading: loadingInProgress } = useQuery<Inspection[]>({
     queryKey: ["/api/inspections/in-progress"],
@@ -31,6 +44,54 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
 
   const { data: completedInspections = [], isLoading: loadingCompleted } = useQuery<Inspection[]>({
     queryKey: ["/api/inspections/completed"],
+  });
+
+  const deleteInspectionMutation = useMutation({
+    mutationFn: async (inspectionId: string) => {
+      const response = await apiRequest("DELETE", `/api/inspections/${inspectionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/completed"] });
+      toast({
+        title: "Success",
+        description: "Inspection deleted successfully",
+      });
+      setDeleteDialogOpen(false);
+      setInspectionToDelete(null);
+      setConfirmDelete(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete inspection",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createRetestMutation = useMutation({
+    mutationFn: async (originalInspectionId: string) => {
+      const response = await apiRequest("POST", `/api/inspections/${originalInspectionId}/retest`);
+      return response.json();
+    },
+    onSuccess: (newInspection) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/in-progress"] });
+      toast({
+        title: "Success",
+        description: "Retest created successfully",
+      });
+      onOpenInspection(newInspection.id);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create retest",
+        variant: "destructive",
+      });
+    },
   });
 
   const getProgressInfo = (inspection: Inspection) => {
@@ -60,6 +121,22 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
     if (diffHours < 1) return "Less than 1 hour ago";
     if (diffHours === 1) return "1 hour ago";
     return `${diffHours} hours ago`;
+  };
+
+  const handleDeleteClick = (inspection: Inspection) => {
+    setInspectionToDelete(inspection);
+    setDeleteDialogOpen(true);
+    setConfirmDelete(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (inspectionToDelete && confirmDelete) {
+      deleteInspectionMutation.mutate(inspectionToDelete.id);
+    }
+  };
+
+  const handleRetest = (inspectionId: string, roadworthyNumber: string) => {
+    createRetestMutation.mutate(inspectionId);
   };
 
   if (loadingInProgress || loadingCompleted) {
@@ -190,11 +267,18 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                     {inspection.status === "fail" && (
                       <Button 
                         className="flex-1 bg-primary hover:bg-primary-dark"
-                        onClick={() => onOpenInspection(inspection.id)}
+                        onClick={() => handleRetest(inspection.id, inspection.roadworthyNumber)}
                       >
                         Retest
                       </Button>
                     )}
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => handleDeleteClick(inspection)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -202,6 +286,51 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
           </div>
         )}
       </section>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Inspection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure that you want to delete Inspection {inspectionToDelete?.roadworthyNumber}?
+            </p>
+            <p className="text-xs text-gray-500">
+              Note: This will only delete the inspection from the app. Photos and folders in the network location will not be deleted.
+            </p>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="confirmDelete" 
+                checked={confirmDelete}
+                onCheckedChange={(checked) => setConfirmDelete(checked as boolean)}
+              />
+              <Label htmlFor="confirmDelete" className="text-sm cursor-pointer">
+                Yes, I am sure
+              </Label>
+            </div>
+            <div className="flex space-x-3 pt-4">
+              <Button 
+                variant="secondary" 
+                onClick={() => setDeleteDialogOpen(false)}
+                className="flex-1"
+                disabled={deleteInspectionMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                className="flex-1"
+                disabled={!confirmDelete || deleteInspectionMutation.isPending}
+              >
+                {deleteInspectionMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

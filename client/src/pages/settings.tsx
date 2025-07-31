@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
@@ -19,9 +21,27 @@ export default function Settings({ onCancel }: SettingsProps) {
     queryKey: ["/api/settings"],
   });
 
+  const [localSettings, setLocalSettings] = useState<{
+    checklistItemSettings: Record<string, string>;
+    networkFolderPath: string;
+  }>({
+    checklistItemSettings: {},
+    networkFolderPath: ""
+  });
+
+  // Initialize local settings when data loads
+  useEffect(() => {
+    if (settings) {
+      setLocalSettings({
+        checklistItemSettings: settings.checklistItemSettings || {},
+        networkFolderPath: settings.networkFolderPath || ""
+      });
+    }
+  }, [settings]);
+
   const updateSettingsMutation = useMutation({
-    mutationFn: async (checklistItemSettings: Record<string, string>) => {
-      const response = await apiRequest("PATCH", "/api/settings", { checklistItemSettings });
+    mutationFn: async (data: { checklistItemSettings: Record<string, string>; networkFolderPath: string }) => {
+      const response = await apiRequest("PATCH", "/api/settings", data);
       return response.json();
     },
     onSuccess: () => {
@@ -41,14 +61,25 @@ export default function Settings({ onCancel }: SettingsProps) {
     },
   });
 
-  const checklistItemSettings = settings?.checklistItemSettings || {};
-
   const handleItemSettingChange = (item: string, value: string) => {
-    const updatedSettings = {
-      ...checklistItemSettings,
-      [item]: value
-    };
-    updateSettingsMutation.mutate(updatedSettings);
+    setLocalSettings(prev => ({
+      ...prev,
+      checklistItemSettings: {
+        ...prev.checklistItemSettings,
+        [item]: value
+      }
+    }));
+  };
+
+  const handleNetworkFolderChange = (value: string) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      networkFolderPath: value
+    }));
+  };
+
+  const handleSave = () => {
+    updateSettingsMutation.mutate(localSettings);
   };
 
   const getItemDescription = (item: string): string => {
@@ -107,10 +138,38 @@ export default function Settings({ onCancel }: SettingsProps) {
     <div className="p-4">
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-xl font-medium mb-6 text-on-surface">Checklist Settings</h2>
-          <p className="text-sm text-gray-600 mb-6">
-            Configure which items are required or optional for all inspections.
-          </p>
+          <h2 className="text-xl font-medium mb-6 text-on-surface">Application Settings</h2>
+          
+          {/* Network Folder Configuration */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium mb-4 text-on-surface">Network Folder Configuration</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Set the network folder path where completed inspection photos will be saved.
+            </p>
+            <div>
+              <Label htmlFor="networkFolder" className="text-sm font-medium text-gray-700">
+                Network Folder Path
+              </Label>
+              <Input
+                id="networkFolder"
+                type="text"
+                value={localSettings.networkFolderPath}
+                onChange={(e) => handleNetworkFolderChange(e.target.value)}
+                placeholder="e.g., \\\\server\\inspections or /mnt/network/inspections"
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Photos will be organized as: [Network Folder]/[Roadworthy Number]/[Initial Test|Retest 1|Retest 2]/
+              </p>
+            </div>
+          </div>
+
+          {/* Checklist Settings */}
+          <div>
+            <h3 className="text-lg font-medium mb-4 text-on-surface">Checklist Item Requirements</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Configure which items are required or optional for all inspections.
+            </p></div>
           
           <div className="space-y-4">
             {CHECKLIST_ITEMS.map((item) => (
@@ -120,7 +179,7 @@ export default function Settings({ onCancel }: SettingsProps) {
                   <p className="text-sm text-gray-500">{getItemDescription(item)}</p>
                 </div>
                 <RadioGroup
-                  value={checklistItemSettings[item] || "optional"}
+                  value={localSettings.checklistItemSettings[item] || "optional"}
                   onValueChange={(value) => handleItemSettingChange(item, value)}
                   className="flex items-center space-x-6"
                 >
@@ -151,7 +210,7 @@ export default function Settings({ onCancel }: SettingsProps) {
               Cancel
             </Button>
             <Button 
-              onClick={() => updateSettingsMutation.mutate(checklistItemSettings)}
+              onClick={handleSave}
               className="flex-1 bg-primary hover:bg-primary-dark"
               disabled={updateSettingsMutation.isPending}
             >

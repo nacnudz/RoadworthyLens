@@ -34,6 +34,7 @@ export class MemStorage implements IStorage {
     this.settings = {
       id: randomUUID(),
       checklistItemSettings: defaultChecklistSettings,
+      networkFolderPath: "",
       updatedAt: new Date(),
     };
   }
@@ -81,6 +82,8 @@ export class MemStorage implements IStorage {
       id,
       checklistItems,
       photos: {},
+      testNumber: 1,
+      completedAt: null,
       createdAt: now,
       updatedAt: now,
     };

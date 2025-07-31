@@ -255,6 +255,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(CHECKLIST_ITEMS);
   });
 
+  // Delete inspection
+  app.delete("/api/inspections/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const success = await storage.deleteInspection(id);
+      if (!success) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+
+      res.json({ message: "Inspection deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete inspection" });
+    }
+  });
+
+  // Create retest from existing inspection  
+  app.post("/api/inspections/:id/retest", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const originalInspection = await storage.getInspection(id);
+      if (!originalInspection) {
+        return res.status(404).json({ message: "Original inspection not found" });
+      }
+
+      // Find the next test number for this roadworthy number
+      const allInspections = await storage.getAllInspections();
+      const sameRoadworthyInspections = allInspections.filter(
+        inspection => inspection.roadworthyNumber === originalInspection.roadworthyNumber
+      );
+      const nextTestNumber = Math.max(...sameRoadworthyInspections.map(i => i.testNumber || 1)) + 1;
+
+      // Create new inspection with empty checklist and photos
+      const retestData = {
+        roadworthyNumber: originalInspection.roadworthyNumber,
+        clientName: originalInspection.clientName,
+        vehicleDescription: originalInspection.vehicleDescription,
+        status: "in-progress" as const,
+      };
+
+      const newInspection = await storage.createInspection(retestData);
+      
+      // Update the new inspection with the correct test number
+      const updatedInspection = await storage.updateInspection(newInspection.id, {
+        testNumber: nextTestNumber
+      });
+
+      res.status(201).json(updatedInspection);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create retest" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

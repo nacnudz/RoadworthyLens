@@ -201,6 +201,13 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         </CardContent>
       </Card>
 
+      {/* Test Heading */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-on-surface bg-gray-50 px-4 py-2 rounded-lg border">
+          {currentInspection?.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection?.testNumber - 1}`}
+        </h3>
+      </div>
+
       {/* Checklist Items */}
       <div className="space-y-3">
         {CHECKLIST_ITEMS.map((item) => {
