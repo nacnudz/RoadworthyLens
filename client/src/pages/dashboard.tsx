@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Trash2, Loader2, Settings } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 import Logo from "@/components/logo";
 
@@ -24,6 +24,7 @@ interface Inspection {
   checklistItems: Record<string, boolean>;
   photos: Record<string, string[]>;
   completedAt?: string;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -198,17 +199,13 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       <div className="p-4 space-y-6 max-w-md mx-auto">
         
         {/* Header with Logo */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Logo className="h-10 w-auto" />
-            <div>
-              <h1 className="text-2xl font-bold text-on-surface">Roadworthy Tests</h1>
-              <p className="text-sm text-gray-500">Vehicle inspection management</p>
-            </div>
+        <div className="flex items-center justify-between">
+          <Logo className="h-10 w-auto" />
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-bold text-on-surface">Road Worthy Lens</h1>
+            <p className="text-sm text-gray-500">Vehicle inspection management</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => onOpenSettings()}>
-            <Settings className="h-4 w-4" />
-          </Button>
+          <div className="w-10"></div> {/* Spacer for balance */}
         </div>
 
         {/* Quick Stats */}

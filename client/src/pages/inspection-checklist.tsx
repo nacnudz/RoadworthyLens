@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -263,7 +263,27 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Checklist Items */}
       <div className="space-y-3">
-        {CHECKLIST_ITEMS.map((item) => {
+        {[...CHECKLIST_ITEMS]
+          .sort((a, b) => {
+            const aRequired = checklistSettings[a] === "required";
+            const bRequired = checklistSettings[b] === "required";
+            const aHidden = checklistSettings[a] === "hidden";
+            const bHidden = checklistSettings[b] === "hidden";
+            
+            // Hide hidden items
+            if (aHidden && !bHidden) return 1;
+            if (!aHidden && bHidden) return -1;
+            if (aHidden && bHidden) return 0;
+            
+            // Required items first
+            if (aRequired && !bRequired) return -1;
+            if (!aRequired && bRequired) return 1;
+            
+            // Then alphabetical
+            return a.localeCompare(b);
+          })
+          .filter(item => checklistSettings[item] !== "hidden")
+          .map((item) => {
           const { isRequired, isCompleted, photoCount, statusText, statusColor } = getItemStatus(item);
           
           return (
@@ -285,9 +305,12 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                       </p>
                     </div>
                   </div>
-                  <Badge className={statusColor}>
-                    {statusText}
-                  </Badge>
+                  {/* Only show status badge if not completed and not view-only */}
+                  {!isViewOnly && currentInspection.status === "in-progress" && (
+                    <Badge className={statusColor}>
+                      {statusText}
+                    </Badge>
+                  )}
                 </div>
                 
                 <div className="flex space-x-2">
@@ -393,20 +416,6 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <p className="text-sm text-gray-600">
               Please select the inspection result:
             </p>
-            <RadioGroup value={selectedResult} onValueChange={(value: "pass" | "fail") => setSelectedResult(value)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pass" id="pass" />
-                <Label htmlFor="pass" className="text-sm cursor-pointer">
-                  Passed Test
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fail" id="fail" />
-                <Label htmlFor="fail" className="text-sm cursor-pointer">
-                  Failed Test
-                </Label>
-              </div>
-            </RadioGroup>
             <div className="space-y-3 pt-4">
               <Button 
                 onClick={() => {
@@ -443,9 +452,9 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 )}
               </Button>
               <Button 
-                variant="secondary" 
+                variant="outline" 
                 onClick={() => setShowCompletionDialog(false)}
-                className="w-full"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300"
                 disabled={completeInspectionMutation.isPending}
               >
                 Cancel

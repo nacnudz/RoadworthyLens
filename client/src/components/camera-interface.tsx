@@ -70,33 +70,18 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         stream.getTracks().forEach(track => track.stop());
       }
       
-      const constraints = {
-        video: {
-          facingMode,
-          width: { ideal: 1920, min: 640 },
-          height: { ideal: 1080, min: 480 }
-        },
-        audio: false,
-      };
+      if (!videoRef.current) return;
       
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          setIsLoading(false);
-        };
-      } else {
-        setIsLoading(false);
-      }
-      
+      // Import camera functions dynamically
+      const { startCamera: startCameraLib } = await import("@/lib/camera");
+      const newStream = await startCameraLib(videoRef.current);
       setStream(newStream);
+      setIsLoading(false);
     } catch (error) {
-      console.error("Error accessing camera:", error);
+      console.error("Failed to start camera:", error);
       toast({
         title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
+        description: "Could not access camera. Please check permissions and try again.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -114,28 +99,22 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     setFacingMode(current => current === "user" ? "environment" : "user");
   };
 
-  const capturePhoto = () => {
+  const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-
-    if (!context) return;
-
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw the video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-      if (blob) {
-        uploadPhotoMutation.mutate(blob);
-      }
-    }, "image/jpeg", 0.9);
+    
+    try {
+      const { capturePhoto: capturePhotoLib, dataURItoBlob } = await import("@/lib/camera");
+      const dataUrl = capturePhotoLib(videoRef.current);
+      const blob = dataURItoBlob(dataUrl);
+      uploadPhotoMutation.mutate(blob);
+    } catch (error) {
+      console.error("Failed to capture photo:", error);
+      toast({
+        title: "Error",
+        description: "Failed to capture photo",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
