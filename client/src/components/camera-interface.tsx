@@ -80,6 +80,9 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         throw new Error('Camera not supported by this browser');
       }
 
+      // Log camera initialization for debugging
+      console.log('Starting camera initialization...');
+
       // Try different camera configurations for better compatibility
       const constraints = [
         // Try environment camera first (back camera on mobile)
@@ -208,6 +211,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
               playsInline
               muted
               className="w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }}
             />
             <canvas ref={canvasRef} className="hidden" />
           </>

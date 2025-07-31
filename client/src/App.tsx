@@ -45,10 +45,10 @@ function Router() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {currentView !== "camera" && <Header onSettingsClick={() => setCurrentView("settings")} />}
+      {currentView !== "camera" && <Header />}
       
       <main className={currentView !== "camera" ? "pb-20" : ""}>
-        {currentView === "dashboard" && <Dashboard onOpenInspection={openInspection} />}
+        {currentView === "dashboard" && <Dashboard onOpenInspection={openInspection} onOpenSettings={() => setCurrentView("settings")} onCreateInspection={() => setCurrentView("new-inspection")} />}
         {currentView === "new-inspection" && <NewInspection onCancel={() => setCurrentView("dashboard")} onComplete={handleNewInspectionComplete} />}
         {currentView === "checklist" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} />}
         {currentView === "view-report" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} isViewOnly={true} />}

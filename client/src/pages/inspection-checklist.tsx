@@ -345,6 +345,16 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                     variant="secondary"
                     size="icon"
                     disabled={photoCount === 0}
+                    onClick={() => {
+                      if (photoCount > 0) {
+                        // For now, show a toast with photo count
+                        // In future, this could open a photo gallery modal
+                        toast({
+                          title: "Photos for this item",
+                          description: `${photoCount} photo${photoCount > 1 ? 's' : ''} available for ${item}`,
+                        });
+                      }
+                    }}
                   >
                     <Images />
                   </Button>
