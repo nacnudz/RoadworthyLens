@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 interface NewInspectionProps {
   onCancel: () => void;
-  onComplete: () => void;
+  onComplete: (inspectionId: string) => void;
 }
 
 export default function NewInspection({ onCancel, onComplete }: NewInspectionProps) {
@@ -31,14 +31,14 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
       const response = await apiRequest("POST", "/api/inspections", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inspections/in-progress"] });
       toast({
         title: "Success",
         description: "Inspection created successfully",
       });
-      onComplete();
+      onComplete(data.id);
     },
     onError: (error: any) => {
       toast({
@@ -54,14 +54,6 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
     
     if (!formData.roadworthyNumber.trim()) {
       newErrors.roadworthyNumber = "Roadworthy number is required";
-    }
-    
-    if (!formData.clientName.trim()) {
-      newErrors.clientName = "Client name is required";
-    }
-    
-    if (!formData.vehicleDescription.trim()) {
-      newErrors.vehicleDescription = "Vehicle description is required";
     }
 
     setErrors(newErrors);
@@ -112,16 +104,15 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
             
             <div>
               <Label htmlFor="clientName" className="text-sm font-medium text-gray-700">
-                Client Name <span className="text-destructive">*</span>
+                Client Name
               </Label>
               <Input
                 id="clientName"
                 type="text"
                 value={formData.clientName}
                 onChange={(e) => updateFormData("clientName", e.target.value)}
-                placeholder="Enter client name"
+                placeholder="Enter client name (optional)"
                 className="mt-2"
-                required
               />
               {errors.clientName && (
                 <p className="text-destructive text-sm mt-1">{errors.clientName}</p>
@@ -130,16 +121,15 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
             
             <div>
               <Label htmlFor="vehicleDescription" className="text-sm font-medium text-gray-700">
-                Vehicle Description <span className="text-destructive">*</span>
+                Vehicle Description
               </Label>
               <Input
                 id="vehicleDescription"
                 type="text"
                 value={formData.vehicleDescription}
                 onChange={(e) => updateFormData("vehicleDescription", e.target.value)}
-                placeholder="e.g., 2019 Toyota Camry - ABC123"
+                placeholder="e.g., 2019 Toyota Camry - ABC123 (optional)"
                 className="mt-2"
-                required
               />
               {errors.vehicleDescription && (
                 <p className="text-destructive text-sm mt-1">{errors.vehicleDescription}</p>

@@ -6,8 +6,8 @@ import { z } from "zod";
 export const inspections = pgTable("inspections", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   roadworthyNumber: text("roadworthy_number").notNull().unique(),
-  clientName: text("client_name").notNull(),
-  vehicleDescription: text("vehicle_description").notNull(),
+  clientName: text("client_name").default(""),
+  vehicleDescription: text("vehicle_description").default(""),
   status: text("status").notNull().default("in-progress"), // "in-progress", "pass", "fail"
   checklistItems: jsonb("checklist_items").notNull().default('{}'),
   photos: jsonb("photos").notNull().default('{}'),
@@ -26,6 +26,9 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  clientName: z.string().optional().default(""),
+  vehicleDescription: z.string().optional().default(""),
 });
 
 export const insertSettingsSchema = createInsertSchema(settings).omit({

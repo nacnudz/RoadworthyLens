@@ -10,7 +10,6 @@ export default function BottomNavigation({ currentView, onViewChange }: BottomNa
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "new-inspection", label: "New", icon: Plus },
-    { id: "checklist", label: "Checklist", icon: ListChecks },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 

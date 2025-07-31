@@ -1,34 +1,65 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Camera, Images, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Camera, Images, CheckCircle, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 
 interface InspectionChecklistProps {
+  inspectionId: string | null;
   onShowCamera: (inspectionId: string, itemName: string) => void;
+  onClose: () => void;
 }
 
-export default function InspectionChecklist({ onShowCamera }: InspectionChecklistProps) {
+export default function InspectionChecklist({ inspectionId, onShowCamera, onClose }: InspectionChecklistProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
 
-  // For demo purposes, using the first in-progress inspection
-  const { data: inProgressInspections = [] } = useQuery({
-    queryKey: ["/api/inspections/in-progress"],
+  const { data: currentInspection } = useQuery({
+    queryKey: ["/api/inspections", inspectionId],
+    enabled: !!inspectionId,
   });
 
   const { data: settings } = useQuery({
     queryKey: ["/api/settings"],
   });
 
-  const currentInspection = inProgressInspections[0];
+  const saveInspectionMutation = useMutation({
+    mutationFn: async (inspectionId: string) => {
+      const response = await apiRequest("PATCH", `/api/inspections/${inspectionId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      toast({
+        title: "Success",
+        description: "Inspection saved successfully",
+      });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save inspection",
+        variant: "destructive",
+      });
+    },
+  });
 
   const completeInspectionMutation = useMutation({
-    mutationFn: async (inspectionId: string) => {
+    mutationFn: async ({ inspectionId, status }: { inspectionId: string; status: "pass" | "fail" }) => {
+      // First update the status
+      await apiRequest("PATCH", `/api/inspections/${inspectionId}`, { status });
+      // Then complete the inspection
       const response = await apiRequest("POST", `/api/inspections/${inspectionId}/complete`);
       return response.json();
     },
@@ -38,6 +69,8 @@ export default function InspectionChecklist({ onShowCamera }: InspectionChecklis
         title: "Success",
         description: "Inspection completed and uploaded to network folder",
       });
+      setShowCompletionDialog(false);
+      onClose();
     },
     onError: (error: any) => {
       toast({
@@ -53,16 +86,23 @@ export default function InspectionChecklist({ onShowCamera }: InspectionChecklis
       <div className="p-4">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-gray-500">No inspection in progress. Please start a new inspection.</p>
+            <p className="text-gray-500">No inspection found. Please select an inspection from the dashboard.</p>
+            <Button 
+              onClick={onClose}
+              className="mt-4 bg-primary text-primary-foreground hover:bg-primary-dark"
+            >
+              <ArrowLeft className="mr-2" />
+              Back to Dashboard
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const checklistItems = currentInspection.checklistItems || {};
-  const photos = currentInspection.photos || {};
-  const checklistSettings = settings?.checklistItemSettings || {};
+  const checklistItems = (currentInspection?.checklistItems as Record<string, boolean>) || {};
+  const photos = (currentInspection?.photos as Record<string, string[]>) || {};
+  const checklistSettings = (settings?.checklistItemSettings as Record<string, string>) || {};
 
   const getProgressInfo = () => {
     const completed = Object.values(checklistItems).filter(Boolean).length;
@@ -96,6 +136,12 @@ export default function InspectionChecklist({ onShowCamera }: InspectionChecklis
     });
   };
 
+  const handleSaveInspection = () => {
+    if (currentInspection?.id) {
+      saveInspectionMutation.mutate(currentInspection.id);
+    }
+  };
+
   const handleCompleteInspection = () => {
     if (!canComplete()) {
       const missingItems = CHECKLIST_ITEMS.filter(item => 
@@ -109,17 +155,38 @@ export default function InspectionChecklist({ onShowCamera }: InspectionChecklis
       return;
     }
 
-    completeInspectionMutation.mutate(currentInspection.id);
+    setShowCompletionDialog(true);
+  };
+
+  const handleFinalizeCompletion = () => {
+    if (currentInspection?.id) {
+      completeInspectionMutation.mutate({ 
+        inspectionId: currentInspection.id, 
+        status: selectedResult 
+      });
+    }
   };
 
   return (
     <div className="p-4">
+      {/* Back Button */}
+      <div className="mb-4">
+        <Button 
+          variant="ghost" 
+          onClick={onClose}
+          className="p-2"
+        >
+          <ArrowLeft className="mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+
       {/* Inspection Header */}
       <Card className="mb-4">
         <CardContent className="p-4">
           <h2 className="text-lg font-medium text-on-surface">{currentInspection.roadworthyNumber}</h2>
-          <p className="text-sm text-gray-600">{currentInspection.clientName}</p>
-          <p className="text-xs text-gray-500">{currentInspection.vehicleDescription}</p>
+          <p className="text-sm text-gray-600">{currentInspection.clientName || "No client name"}</p>
+          <p className="text-xs text-gray-500">{currentInspection.vehicleDescription || "No vehicle description"}</p>
           
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -185,22 +252,85 @@ export default function InspectionChecklist({ onShowCamera }: InspectionChecklis
         })}
       </div>
 
-      {/* Complete Button */}
-      <Card className="mt-6">
-        <CardContent className="p-4">
-          <Button 
-            className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-green-600"
-            onClick={handleCompleteInspection}
-            disabled={!canComplete() || completeInspectionMutation.isPending}
-          >
-            <CheckCircle className="mr-2" />
-            {completeInspectionMutation.isPending ? "Completing..." : "Complete Inspection"}
-          </Button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            This will upload all photos to the network folder
-          </p>
-        </CardContent>
-      </Card>
+      {/* Action Buttons */}
+      <div className="mt-6 space-y-3">
+        <Card>
+          <CardContent className="p-4">
+            <Button 
+              className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600"
+              onClick={handleSaveInspection}
+              disabled={saveInspectionMutation.isPending}
+            >
+              <Save className="mr-2" />
+              {saveInspectionMutation.isPending ? "Saving..." : "Save Inspection"}
+            </Button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Save progress and return to dashboard
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <Button 
+              className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark"
+              onClick={handleCompleteInspection}
+              disabled={!canComplete() || completeInspectionMutation.isPending}
+            >
+              <CheckCircle className="mr-2" />
+              {completeInspectionMutation.isPending ? "Completing..." : "Complete Inspection"}
+            </Button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Finalize and upload all photos to network folder
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Completion Dialog */}
+      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Inspection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Please select the inspection result:
+            </p>
+            <RadioGroup value={selectedResult} onValueChange={(value: "pass" | "fail") => setSelectedResult(value)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="pass" id="pass" />
+                <Label htmlFor="pass" className="text-sm cursor-pointer">
+                  Passed Test
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="fail" id="fail" />
+                <Label htmlFor="fail" className="text-sm cursor-pointer">
+                  Failed Test
+                </Label>
+              </div>
+            </RadioGroup>
+            <div className="flex space-x-3 pt-4">
+              <Button 
+                variant="secondary" 
+                onClick={() => setShowCompletionDialog(false)}
+                className="flex-1"
+                disabled={completeInspectionMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleFinalizeCompletion}
+                className="flex-1 bg-primary hover:bg-primary-dark"
+                disabled={completeInspectionMutation.isPending}
+              >
+                {completeInspectionMutation.isPending ? "Completing..." : "Done"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

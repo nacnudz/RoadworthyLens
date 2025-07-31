@@ -18,7 +18,11 @@ interface Inspection {
   updatedAt: string;
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+  onOpenInspection: (inspectionId: string) => void;
+}
+
+export default function Dashboard({ onOpenInspection }: DashboardProps) {
   const isMobile = useIsMobile();
 
   const { data: inProgressInspections = [], isLoading: loadingInProgress } = useQuery<Inspection[]>({
@@ -135,7 +139,10 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary-dark">
+                    <Button 
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary-dark"
+                      onClick={() => onOpenInspection(inspection.id)}
+                    >
                       Continue Inspection
                     </Button>
                   </CardContent>
@@ -173,12 +180,21 @@ export default function Dashboard() {
                   </div>
                   
                   <div className="flex space-x-2">
-                    <Button variant="secondary" className="flex-1">
+                    <Button 
+                      variant="secondary" 
+                      className="flex-1"
+                      onClick={() => onOpenInspection(inspection.id)}
+                    >
                       View Report
                     </Button>
-                    <Button className="flex-1 bg-primary hover:bg-primary-dark">
-                      Retest
-                    </Button>
+                    {inspection.status === "fail" && (
+                      <Button 
+                        className="flex-1 bg-primary hover:bg-primary-dark"
+                        onClick={() => onOpenInspection(inspection.id)}
+                      >
+                        Retest
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

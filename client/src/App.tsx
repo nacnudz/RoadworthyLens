@@ -15,6 +15,7 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   const [currentView, setCurrentView] = useState<string>("dashboard");
+  const [currentInspectionId, setCurrentInspectionId] = useState<string | null>(null);
   const [cameraData, setCameraData] = useState<{inspectionId: string, itemName: string} | null>(null);
 
   const showCamera = (inspectionId: string, itemName: string) => {
@@ -27,14 +28,29 @@ function Router() {
     setCurrentView("checklist");
   };
 
+  const openInspection = (inspectionId: string) => {
+    setCurrentInspectionId(inspectionId);
+    setCurrentView("checklist");
+  };
+
+  const closeInspection = () => {
+    setCurrentInspectionId(null);
+    setCurrentView("dashboard");
+  };
+
+  const handleNewInspectionComplete = (inspectionId: string) => {
+    setCurrentInspectionId(inspectionId);
+    setCurrentView("checklist");
+  };
+
   return (
     <div className="min-h-screen bg-surface">
       {currentView !== "camera" && <Header onSettingsClick={() => setCurrentView("settings")} />}
       
       <main className={currentView !== "camera" ? "pb-20" : ""}>
-        {currentView === "dashboard" && <Dashboard />}
-        {currentView === "new-inspection" && <NewInspection onCancel={() => setCurrentView("dashboard")} onComplete={() => setCurrentView("dashboard")} />}
-        {currentView === "checklist" && <InspectionChecklist onShowCamera={showCamera} />}
+        {currentView === "dashboard" && <Dashboard onOpenInspection={openInspection} />}
+        {currentView === "new-inspection" && <NewInspection onCancel={() => setCurrentView("dashboard")} onComplete={handleNewInspectionComplete} />}
+        {currentView === "checklist" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} />}
         {currentView === "settings" && <Settings onCancel={() => setCurrentView("dashboard")} />}
         {currentView === "camera" && cameraData && (
           <CameraInterface 
