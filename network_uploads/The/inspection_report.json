@@ -1,0 +1,30 @@
+{
+  "inspectionId": "eae907fb-6c05-4222-8626-ff3b80a5f500",
+  "roadworthyNumber": "The",
+  "clientName": "",
+  "vehicleDescription": "",
+  "status": "pass",
+  "completedAt": "2025-07-31T14:47:09.583Z",
+  "checklistItems": {
+    "VIN": false,
+    "Under Vehicle": false,
+    "Vehicle on Hoist": false,
+    "Engine Bay": false,
+    "Compliance Plate": false,
+    "Front of Vehicle": false,
+    "Rear of Vehicle": false,
+    "Head Light Aimer": false,
+    "Dashboard Warning Lights": false,
+    "Odometer Before Road Test": false,
+    "Odometer After Road Test": false,
+    "Brake Test Print": false,
+    "Engine Number": false,
+    "Modification Plate": false,
+    "LPG Tank Plate": false,
+    "Tint Read Out": false,
+    "Noteworthy": false,
+    "Fault": false,
+    "Other": false
+  },
+  "photos": {}
+}

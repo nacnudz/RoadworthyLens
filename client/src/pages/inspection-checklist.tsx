@@ -407,28 +407,48 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 </Label>
               </div>
             </RadioGroup>
-            <div className="flex space-x-3 pt-4">
+            <div className="space-y-3 pt-4">
               <Button 
-                variant="secondary" 
-                onClick={() => setShowCompletionDialog(false)}
-                className="flex-1"
+                onClick={() => {
+                  setSelectedResult("pass");
+                  handleFinalizeCompletion();
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
                 disabled={completeInspectionMutation.isPending}
               >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleFinalizeCompletion}
-                className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200"
-                disabled={completeInspectionMutation.isPending}
-              >
-                {completeInspectionMutation.isPending ? (
+                {completeInspectionMutation.isPending && selectedResult === "pass" ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Completing...
                   </>
                 ) : (
-                  "Done"
+                  "Passed"
                 )}
+              </Button>
+              <Button 
+                onClick={() => {
+                  setSelectedResult("fail");
+                  handleFinalizeCompletion();
+                }}
+                className="w-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
+                disabled={completeInspectionMutation.isPending}
+              >
+                {completeInspectionMutation.isPending && selectedResult === "fail" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Completing...
+                  </>
+                ) : (
+                  "Failed"
+                )}
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={() => setShowCompletionDialog(false)}
+                className="w-full"
+                disabled={completeInspectionMutation.isPending}
+              >
+                Cancel
               </Button>
             </div>
           </div>

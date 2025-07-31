@@ -35,10 +35,30 @@ const createTablesSQL = `
     id TEXT PRIMARY KEY,
     checklist_item_settings TEXT NOT NULL DEFAULT '{}',
     network_folder_path TEXT DEFAULT '',
+    logo_url TEXT,
     updated_at TEXT NOT NULL
   );
 `;
 
 sqlite.exec(createTablesSQL);
+
+// Migration function to add missing columns to existing databases
+function runMigrations() {
+  try {
+    // Check if logo_url column exists, if not add it
+    const tableInfo = sqlite.prepare("PRAGMA table_info(settings)").all() as any[];
+    const hasLogoUrl = tableInfo.some(col => col.name === 'logo_url');
+    
+    if (!hasLogoUrl) {
+      sqlite.prepare("ALTER TABLE settings ADD COLUMN logo_url TEXT").run();
+      console.log("Added logo_url column to settings table");
+    }
+  } catch (error) {
+    console.log("Migration completed or table structure already correct");
+  }
+}
+
+// Run migrations on startup
+runMigrations();
 
 export { sqlite };

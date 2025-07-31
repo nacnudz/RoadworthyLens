@@ -309,6 +309,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Logo upload configuration
+  const logoStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/logos')
+    },
+    filename: function (req, file, cb) {
+      // Keep original extension
+      const ext = path.extname(file.originalname);
+      cb(null, `logo-${Date.now()}${ext}`)
+    }
+  });
+
+  const logoUpload = multer({ 
+    storage: logoStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  // Logo upload endpoint
+  app.post('/api/upload-logo', logoUpload.single('logo'), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Create logos directory if it doesn't exist
+      await fs.promises.mkdir('uploads/logos', { recursive: true });
+
+      const logoUrl = `/uploads/logos/${file.filename}`;
+      
+      // Update settings with new logo URL
+      let settings = await storage.getSettings();
+      
+      if (settings) {
+        await storage.updateSettings({
+          checklistItemSettings: settings.checklistItemSettings,
+          networkFolderPath: settings.networkFolderPath || '',
+          logoUrl: logoUrl
+        });
+      } else {
+        // Create settings if they don't exist
+        await storage.updateSettings({
+          checklistItemSettings: {},
+          networkFolderPath: '',
+          logoUrl: logoUrl
+        });
+      }
+
+      res.json({
+        message: 'Logo uploaded successfully',
+        logoUrl: logoUrl
+      });
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      res.status(500).json({ error: 'Logo upload failed' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

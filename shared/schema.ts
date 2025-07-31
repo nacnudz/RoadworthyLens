@@ -21,6 +21,7 @@ export const settings = sqliteTable("settings", {
   id: text("id").primaryKey(),
   checklistItemSettings: text("checklist_item_settings", { mode: "json" }).notNull().default("{}"),
   networkFolderPath: text("network_folder_path").default(""),
+  logoUrl: text("logo_url"),
   updatedAt: text("updated_at").notNull(),
 });
 

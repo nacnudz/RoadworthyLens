@@ -11,8 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Settings } from "lucide-react";
 import { CHECKLIST_ITEMS } from "@shared/schema";
+import Logo from "@/components/logo";
 
 interface Inspection {
   id: string;
@@ -28,9 +29,11 @@ interface Inspection {
 
 interface DashboardProps {
   onOpenInspection: (inspectionId: string, isViewOnly?: boolean) => void;
+  onOpenSettings: () => void;
+  onCreateInspection: () => void;
 }
 
-export default function Dashboard({ onOpenInspection }: DashboardProps) {
+export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateInspection }: DashboardProps) {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -191,8 +194,24 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
   }).length;
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Quick Stats */}
+    <div className="min-h-screen bg-surface text-on-surface">
+      <div className="p-4 space-y-6 max-w-md mx-auto">
+        
+        {/* Header with Logo */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Logo className="h-10 w-auto" />
+            <div>
+              <h1 className="text-2xl font-bold text-on-surface">Roadworthy Tests</h1>
+              <p className="text-sm text-gray-500">Vehicle inspection management</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => onOpenSettings()}>
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -238,6 +257,9 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                         <h3 className="font-medium text-on-surface">{inspection.roadworthyNumber}</h3>
                         <p className="text-sm text-gray-600">{inspection.clientName}</p>
                         <p className="text-xs text-gray-500">{inspection.vehicleDescription}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Created: {new Date(inspection.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
                       {getStatusBadge(inspection.status)}
                     </div>
@@ -291,8 +313,8 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
                       <h3 className="font-medium text-on-surface">{inspection.roadworthyNumber}</h3>
                       <p className="text-sm text-gray-600">{inspection.clientName}</p>
                       <p className="text-xs text-gray-500">{inspection.vehicleDescription}</p>
-                      <p className="text-xs text-gray-400">
-                        {inspection.completedAt ? `Completed ${formatTimeAgo(inspection.completedAt)}` : `Updated ${formatTimeAgo(inspection.updatedAt)}`}
+                      <p className="text-xs text-gray-400 mt-1">
+                        Completed: {inspection.completedAt ? new Date(inspection.completedAt).toLocaleDateString() : new Date(inspection.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
                     {getStatusBadge(inspection.status)}
@@ -337,7 +359,9 @@ export default function Dashboard({ onOpenInspection }: DashboardProps) {
           </div>
         )}
       </section>
-
+      
+      </div>
+      
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
