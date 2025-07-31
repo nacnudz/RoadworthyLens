@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Inspection not found" });
       }
 
-      const photos = inspection.photos || {};
+      const photos = (inspection.photos as Record<string, string[]>) || {};
       const itemPhotos = photos[itemName] || [];
 
       if (photoIndexNum >= itemPhotos.length) {
@@ -294,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Remove the photo from the array
-      const updatedItemPhotos = itemPhotos.filter((_, index) => index !== photoIndexNum);
+      const updatedItemPhotos = itemPhotos.filter((_: string, index: number) => index !== photoIndexNum);
       const updatedPhotos = { ...photos };
       
       if (updatedItemPhotos.length === 0) {
@@ -303,17 +303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedPhotos[itemName] = updatedItemPhotos;
       }
 
-      // Update checklist completion status if no photos remain
-      const checklist = inspection.checklist || {};
-      let updatedChecklist = { ...checklist };
-      
-      if (updatedItemPhotos.length === 0) {
-        updatedChecklist[itemName] = false;
-      }
-
       const updatedInspection = await storage.updateInspection(id, {
-        photos: updatedPhotos,
-        checklist: updatedChecklist
+        photos: updatedPhotos
       });
 
       res.json(updatedInspection);

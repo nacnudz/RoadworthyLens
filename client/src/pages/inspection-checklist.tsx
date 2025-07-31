@@ -503,9 +503,13 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         }}
         onDeletePhoto={async (photoIndex) => {
           try {
-            await apiRequest(`/api/inspections/${inspectionId}/photos/${encodeURIComponent(selectedGalleryItem)}/${photoIndex}`, {
+            const response = await fetch(`/api/inspections/${inspectionId}/photos/${encodeURIComponent(selectedGalleryItem)}/${photoIndex}`, {
               method: 'DELETE'
             });
+            
+            if (!response.ok) {
+              throw new Error('Failed to delete photo');
+            }
             
             // Refetch inspection data to update photo counts and checklist status
             queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspectionId}`] });
