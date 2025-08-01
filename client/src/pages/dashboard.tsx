@@ -372,13 +372,13 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                     </div>
                     <div className="flex flex-col items-center">
                       {getStatusBadge(inspection.status)}
-                      <Badge className="bg-blue-100 text-blue-800 mt-1 text-xs">Completed</Badge>
+                      <Badge className="bg-primary/10 text-primary mt-1 text-xs">Completed</Badge>
                     </div>
                   </div>
                   
                   <div className="flex space-x-2">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-105"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 hover:scale-105"
                       onClick={() => onOpenInspection(inspection.id, true)}
                     >
                       View Report
@@ -471,7 +471,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                   
                   <div className="flex space-x-2">
                     <Button 
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 hover:scale-105"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 hover:scale-105"
                       onClick={() => onOpenInspection(inspection.id, true)}
                     >
                       View Report

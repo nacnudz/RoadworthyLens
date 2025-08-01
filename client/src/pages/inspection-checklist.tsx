@@ -294,7 +294,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Back Button */}
       <div className="mb-4">
         <Button 
-          className="bg-blue-600 hover:bg-blue-700 text-white p-2"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground p-2"
           onClick={onClose}
         >
           <ArrowLeft className="mr-2" />
@@ -314,10 +314,10 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <div className="flex space-x-2 ml-4">
               {(currentInspection.status === "pass" || currentInspection.status === "fail") && (
                 <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Check className="w-5 h-5 text-blue-600" />
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-primary" />
                   </div>
-                  <span className="text-xs text-blue-600 mt-1">Completed</span>
+                  <span className="text-xs text-primary mt-1">Completed</span>
                 </div>
               )}
               {currentInspection.uploadedToVicRoadsAt && (
