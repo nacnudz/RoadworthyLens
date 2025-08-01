@@ -186,169 +186,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           missingItems: missingRequiredItems 
         });
       }
-      let networkUploadResult = null;
-
-      // Create local network folder structure for backup
-      const localNetworkPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
-      if (!fs.existsSync(localNetworkPath)) {
-        fs.mkdirSync(localNetworkPath, { recursive: true });
+      // Create local backup folder structure
+      const localBackupPath = path.join(process.cwd(), "Completed", inspection.roadworthyNumber);
+      if (!fs.existsSync(localBackupPath)) {
+        fs.mkdirSync(localBackupPath, { recursive: true });
       }
 
-      // Copy all photos to local network folder
+      // Copy all photos to local backup folder
       const photos = inspection.photos as Record<string, string[]>;
       for (const [itemName, photoFiles] of Object.entries(photos)) {
         for (const photoFile of photoFiles) {
           const sourcePath = path.join(uploadDir, photoFile);
-          const destPath = path.join(localNetworkPath, photoFile);
+          const destPath = path.join(localBackupPath, photoFile);
           if (fs.existsSync(sourcePath)) {
             fs.copyFileSync(sourcePath, destPath);
           }
         }
       }
 
-      // Network accessibility check and upload
-      console.log("Checking network settings:", {
-        folderPath: settings?.networkFolderPath,
-        hasUsername: !!settings?.networkUsername,
-        hasPassword: !!settings?.networkPasswordHash
-      });
-      
-      if (settings && settings.networkFolderPath && settings.networkUsername && settings.networkPasswordHash) {
-        try {
-          console.log(`Starting network accessibility check for: ${settings.networkFolderPath}`);
-          
-          // Simulate network accessibility check
-          // In real implementation, this would ping the network location
-          const isNetworkAccessible = true; // For now, assume accessible
-          
-          if (!isNetworkAccessible) {
-            networkUploadResult = {
-              success: false,
-              error: "Network location not accessible",
-              message: "Cannot reach network folder. Check your connection."
-            };
-          } else {
-            console.log(`Starting SMB upload to: ${settings.networkFolderPath}/${inspection.roadworthyNumber}`);
-            
-            // Check if we're trying to access a Windows network path from Linux environment
-            const isWindowsNetworkPath = settings.networkFolderPath.startsWith('\\\\');
-            
-            if (isWindowsNetworkPath) {
-              console.warn("Windows UNC network paths cannot be accessed directly from Linux container environment");
-              throw new Error("Network upload not supported in current environment. Windows network paths require proper SMB mounting or network drive mapping.");
-            }
-            
-            // Create the network directory structure
-            const networkDir = path.join(settings.networkFolderPath, inspection.roadworthyNumber);
-            
-            // Try to create the network directory if it doesn't exist
-            try {
-              if (!fs.existsSync(networkDir)) {
-                fs.mkdirSync(networkDir, { recursive: true });
-                console.log(`Created network directory: ${networkDir}`);
-              }
-            } catch (dirError: unknown) {
-              console.warn(`Could not create network directory: ${(dirError as Error).message}`);
-              throw new Error(`Cannot access network location: ${settings.networkFolderPath}`);
-            }
-            
-            // Copy all photos with proper filename extraction
-            let uploadedFiles = 0;
-            for (const [itemName, photoUrls] of Object.entries(photos)) {
-              for (const photoUrl of photoUrls) {
-                // Extract filename from URL (remove /api/photos/ prefix)
-                const filename = photoUrl.replace('/api/photos/', '');
-                const sourcePath = path.join(uploadDir, filename);
-                const destPath = path.join(networkDir, filename);
-                
-                if (fs.existsSync(sourcePath)) {
-                  try {
-                    // Actually copy the file to the network location
-                    fs.copyFileSync(sourcePath, destPath);
-                    console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
-                    uploadedFiles++;
-                  } catch (copyError: unknown) {
-                    console.error(`Failed to copy file ${filename}: ${(copyError as Error).message}`);
-                    // Still count the file so the UI shows some success
-                  }
-                } else {
-                  console.warn(`Source file not found: ${sourcePath}`);
-                }
-              }
-            }
-            
-            // Also copy the inspection report
-            try {
-              const reportPath = path.join(localNetworkPath, "inspection_report.json");
-              const networkReportPath = path.join(networkDir, "inspection_report.json");
-              if (fs.existsSync(reportPath)) {
-                fs.copyFileSync(reportPath, networkReportPath);
-                console.log(`Copied inspection report to: ${networkReportPath}`);
-              }
-            } catch (reportError: unknown) {
-              console.warn(`Failed to copy inspection report: ${(reportError as Error).message}`);
-            }
-            
-            // Simulate successful upload
-            networkUploadResult = {
-              success: true,
-              path: networkDir,
-              filesUploaded: uploadedFiles,
-              message: `Successfully uploaded ${uploadedFiles} files to network location`
-            };
-            
-            // Update inspection with upload status
-            await storage.updateInspection(id, {
-              uploadedAt: new Date().toISOString(),
-              uploadStatus: "success"
-            });
-            
-            console.log("SMB upload completed successfully", networkUploadResult);
-          }
-          
-        } catch (error: unknown) {
-          console.error("Network upload failed:", error);
-          networkUploadResult = {
-            success: false,
-            error: `Network upload failed: ${(error as Error).message}`,
-            message: "Photos saved locally only"
-          };
-          
-          // Update inspection with failed upload status
-          await storage.updateInspection(id, {
-            uploadStatus: "failed"
-          });
-        }
-      } else {
-        console.log("Network upload skipped - missing configuration");
-        networkUploadResult = {
-          success: false,
-          error: "Network settings not configured",
-          message: "Photos saved locally only"
-        };
-        
-        // Update inspection with pending upload status
-        await storage.updateInspection(id, {
-          uploadStatus: "pending"
-        });
-      }
-
-      // Create inspection report
-      const reportData = {
-        inspectionId: inspection.id,
+      // Create inspection report for backup
+      const inspectionReport = {
         roadworthyNumber: inspection.roadworthyNumber,
         clientName: inspection.clientName,
         vehicleDescription: inspection.vehicleDescription,
         status: inspection.status,
         completedAt: new Date().toISOString(),
         checklistItems: inspection.checklistItems,
-        photos: inspection.photos
+        photos: inspection.photos,
+        testNumber: inspection.testNumber
       };
 
-      fs.writeFileSync(
-        path.join(localNetworkPath, "inspection_report.json"),
-        JSON.stringify(reportData, null, 2)
-      );
+      // Save inspection report to backup folder
+      const reportPath = path.join(localBackupPath, "inspection_report.json");
+      fs.writeFileSync(reportPath, JSON.stringify(inspectionReport, null, 2));
+      
+      console.log(`Local backup completed for inspection ${inspection.roadworthyNumber} in Completed folder`);
 
       // Update inspection as completed (upload status will be set above)
       const updatedInspection = await storage.updateInspection(id, {
@@ -357,8 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         message: "Inspection completed successfully",
-        localPath: localNetworkPath,
-        networkUpload: networkUploadResult,
+        localPath: localBackupPath,
         inspection: updatedInspection
       });
     } catch (error: unknown) {
@@ -367,130 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Network upload endpoint
-  app.post("/api/inspections/:id/upload", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const inspection = await storage.getInspection(id);
-      
-      if (!inspection) {
-        return res.status(404).json({ message: "Inspection not found" });
-      }
 
-      const settings = await storage.getSettings();
-      
-      if (!settings || !settings.networkFolderPath || !settings.networkUsername || !settings.networkPasswordHash) {
-        return res.status(400).json({ 
-          message: "Network settings not configured",
-          accessibilityCheck: false 
-        });
-      }
-
-      // Check if we're trying to access a Windows network path from Linux environment
-      const isWindowsNetworkPath = settings.networkFolderPath.startsWith('\\\\');
-      
-      if (isWindowsNetworkPath) {
-        return res.status(400).json({ 
-          message: "Windows network paths cannot be accessed from this environment. Use a local path or set up proper network mounting.",
-          accessibilityCheck: false 
-        });
-      }
-      
-      // Test network accessibility by attempting to access the path
-      let isNetworkAccessible = true;
-      try {
-        // Try to access the parent network folder to verify connectivity
-        if (!fs.existsSync(settings.networkFolderPath)) {
-          // Try to create the parent directory to test access
-          fs.mkdirSync(settings.networkFolderPath, { recursive: true });
-        }
-      } catch (accessError: unknown) {
-        console.error("Network accessibility test failed:", (accessError as Error).message);
-        isNetworkAccessible = false;
-      }
-      
-      if (!isNetworkAccessible) {
-        return res.status(400).json({ 
-          message: "Network location not accessible. Check your connection and try again.",
-          accessibilityCheck: false 
-        });
-      }
-
-      const photos = inspection.photos as Record<string, string[]>;
-      let uploadedFiles = 0;
-      
-      // Get the network settings
-      const networkDir = path.join(settings.networkFolderPath, inspection.roadworthyNumber);
-      
-      // Try to create the network directory if it doesn't exist
-      try {
-        if (!fs.existsSync(networkDir)) {
-          fs.mkdirSync(networkDir, { recursive: true });
-          console.log(`Created network directory: ${networkDir}`);
-        }
-      } catch (dirError: unknown) {
-        console.warn(`Could not create network directory: ${(dirError as Error).message}`);
-        throw new Error(`Cannot access network location: ${settings.networkFolderPath}`);
-      }
-      
-      // Actually copy files to network location
-      for (const [itemName, photoUrls] of Object.entries(photos)) {
-        for (const photoUrl of photoUrls) {
-          const filename = photoUrl.replace('/api/photos/', '');
-          const sourcePath = path.join(uploadDir, filename);
-          const destPath = path.join(networkDir, filename);
-          
-          if (fs.existsSync(sourcePath)) {
-            try {
-              fs.copyFileSync(sourcePath, destPath);
-              console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
-              uploadedFiles++;
-            } catch (copyError: unknown) {
-              console.error(`Failed to copy file ${filename}: ${(copyError as Error).message}`);
-              throw new Error(`File copy failed: ${(copyError as Error).message}`);
-            }
-          }
-        }
-      }
-      
-      // Copy inspection report
-      const localNetworkPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
-      const reportPath = path.join(localNetworkPath, "inspection_report.json");
-      const networkReportPath = path.join(networkDir, "inspection_report.json");
-      
-      if (fs.existsSync(reportPath)) {
-        try {
-          fs.copyFileSync(reportPath, networkReportPath);
-          console.log(`Copied inspection report to: ${networkReportPath}`);
-        } catch (reportError: unknown) {
-          console.warn(`Failed to copy inspection report: ${(reportError as Error).message}`);
-        }
-      }
-
-      // Update inspection with successful upload
-      await storage.updateInspection(id, {
-        uploadedAt: new Date().toISOString(),
-        uploadStatus: "success"
-      });
-
-      res.json({
-        success: true,
-        message: `Successfully uploaded ${uploadedFiles} files to network location`,
-        filesUploaded: uploadedFiles,
-        uploadedAt: new Date().toISOString()
-      });
-
-    } catch (error: unknown) {
-      await storage.updateInspection(id, {
-        uploadStatus: "failed"
-      });
-      
-      res.status(500).json({ 
-        message: "Upload failed", 
-        error: (error as Error).message 
-      });
-    }
-  });
 
   // Get settings
   app.get("/api/settings", async (req, res) => {
@@ -506,14 +254,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/settings", async (req, res) => {
     try {
       const data = req.body;
-      
-      // Hash password if provided
-      if (data.networkPassword && data.networkPassword.trim() !== '') {
-        const salt = await bcrypt.genSalt(10);
-        data.networkPasswordHash = await bcrypt.hash(data.networkPassword, salt);
-        delete data.networkPassword; // Remove plaintext password
-      }
-      
       const settings = await storage.updateSettings(data);
       res.json(settings);
     } catch (error) {
@@ -676,14 +416,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (settings) {
         await storage.updateSettings({
           checklistItemSettings: settings.checklistItemSettings as any,
-          networkFolderPath: settings.networkFolderPath || '',
           logoUrl: logoUrl
         });
       } else {
         // Create settings if they don't exist
         await storage.updateSettings({
           checklistItemSettings: {},
-          networkFolderPath: '',
           logoUrl: logoUrl
         });
       }

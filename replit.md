@@ -73,7 +73,14 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 3. **Progress Tracking**: Checklist completion tracked in real-time → updates inspection status
 4. **Completion**: When all required items completed → inspection can be marked as pass/fail
 
-## Recent Updates (January 2025)
+## Recent Updates (August 2025)
+
+### Network Upload & SMB Features Removed
+- Completely removed all network upload and SMB functionality due to Windows UNC path incompatibility with Linux containers
+- Simplified app to focus on local operations only
+- Changed backup folder from "network_uploads" to "Completed" for better clarity
+- Success popup notifications now auto-dismiss after 2 seconds for better user experience
+- Removed all network configuration sections from settings page
 
 ### Streamlined Camera Implementation
 - Camera automatically activates when camera interface is opened for immediate access
@@ -84,22 +91,15 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 
 ### Mobile-Responsive Settings Page
 - Enhanced settings page layout with responsive design for mobile devices
-- Password field with show/hide toggle functionality using eye icons
-- Conditional password updates (only saves new passwords, preserves existing)
-- Password masking with 10 dots (••••••••••) for stored passwords
+- Simplified settings interface with network configurations removed
 - Improved form layout with proper mobile breakpoints
 
-### Network Upload & Retry System
-- Loading animation during network uploads with accessibility checks
-- Upload completion date/time tracking in inspection details
-- Manual retry button for failed uploads with comprehensive error handling
-- Real file copying to network location with proper error handling
-- Upload status tracking (pending/success/failed) with visual indicators
-- Retry functionality accessible from completed inspection view
-- Automatic directory creation on network paths
-- Backup copies maintained in local network_uploads folder
-- **Environment Limitation**: Windows UNC network paths (\\\\server\\share) cannot be accessed from Linux container environment
-- Network uploads require local paths or proper SMB mounting setup
+### Local Backup System
+- All completed inspection photos and data automatically backed up to "Completed" folder
+- Organized by roadworthy number for easy access
+- Includes inspection report in JSON format with all details
+- No network dependencies - works offline
+- Simplified completion flow with auto-dismissing success notifications
 
 ### Photo Gallery Implementation
 - Created simplified photo gallery component for viewing inspection item photos

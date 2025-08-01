@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
-import { ArrowLeft, Upload, Loader2, GripVertical, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, GripVertical } from "lucide-react";
 import Logo from "@/components/logo";
 import {
   DndContext,
@@ -100,8 +100,7 @@ interface SettingsProps {
 export default function Settings({ onCancel }: SettingsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showPassword, setShowPassword] = useState(false);
-  const [hasStoredPassword, setHasStoredPassword] = useState(false);
+
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["/api/settings"],
@@ -110,16 +109,10 @@ export default function Settings({ onCancel }: SettingsProps) {
   const [localSettings, setLocalSettings] = useState<{
     checklistItemSettings: Record<string, string>;
     checklistItemOrder: string[];
-    networkFolderPath: string;
-    networkUsername: string;
-    networkPassword: string;
     logoUrl?: string;
   }>({
     checklistItemSettings: {},
     checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
-    networkFolderPath: "",
-    networkUsername: "",
-    networkPassword: "",
     logoUrl: ""
   });
 
@@ -128,15 +121,9 @@ export default function Settings({ onCancel }: SettingsProps) {
   // Initialize local settings when data loads
   useEffect(() => {
     if (settings) {
-      const hasPassword = !!(settings as any).networkPasswordHash;
-      setHasStoredPassword(hasPassword);
-      
       setLocalSettings({
         checklistItemSettings: (settings as any).checklistItemSettings || {},
         checklistItemOrder: (settings as any).checklistItemOrder || [...CHECKLIST_ITEMS].sort(),
-        networkFolderPath: (settings as any).networkFolderPath || "",
-        networkUsername: (settings as any).networkUsername || "",
-        networkPassword: hasPassword ? "••••••••••" : "", // Show dots for stored password
         logoUrl: (settings as any).logoUrl || ""
       });
     }
@@ -181,7 +168,11 @@ export default function Settings({ onCancel }: SettingsProps) {
         title: "Success",
         description: "Settings saved successfully",
       });
-      onCancel();
+      
+      // Auto-dismiss the success toast after 2 seconds
+      setTimeout(() => {
+        onCancel();
+      }, 2000);
     },
     onError: (error: any) => {
       toast({
@@ -202,12 +193,7 @@ export default function Settings({ onCancel }: SettingsProps) {
     }));
   };
 
-  const handleNetworkFolderChange = (value: string) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      networkFolderPath: value
-    }));
-  };
+
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -225,19 +211,11 @@ export default function Settings({ onCancel }: SettingsProps) {
   };
 
   const handleSave = () => {
-    // Create payload, only include password if it's not the masked dots and has been changed
     const payload: any = {
       checklistItemSettings: localSettings.checklistItemSettings,
       checklistItemOrder: localSettings.checklistItemOrder,
-      networkFolderPath: localSettings.networkFolderPath,
-      networkUsername: localSettings.networkUsername,
       logoUrl: localSettings.logoUrl
     };
-    
-    // Only include password if it's been changed (not the masked dots)
-    if (localSettings.networkPassword && localSettings.networkPassword !== "••••••••••") {
-      payload.networkPassword = localSettings.networkPassword;
-    }
     
     updateSettingsMutation.mutate(payload);
   };
@@ -359,76 +337,6 @@ export default function Settings({ onCancel }: SettingsProps) {
                     </>
                   )}
                 </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Network Folder Configuration */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium mb-4 text-on-surface">Network Folder Configuration</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Set the network folder path where completed inspection photos will be saved.
-            </p>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="networkFolder" className="text-sm font-medium text-gray-700">
-                  Network Folder Path
-                </Label>
-                <Input
-                  id="networkFolder"
-                  type="text"
-                  value={localSettings.networkFolderPath}
-                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkFolderPath: e.target.value }))}
-                  placeholder="e.g., \\\\server\\inspections or /mnt/network/inspections"
-                  className="mt-2"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  Photos will be organized as: [Network Folder]/[Roadworthy Number]/[Initial Test|Retest 1|Retest 2]/
-                </p>
-              </div>
-              
-              <div>
-                <Label htmlFor="networkUsername" className="text-sm font-medium text-gray-700">
-                  Username
-                </Label>
-                <Input
-                  id="networkUsername"
-                  type="text"
-                  value={localSettings.networkUsername}
-                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkUsername: e.target.value }))}
-                  placeholder="Network username"
-                  className="mt-2"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="networkPassword" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
-                <div className="relative mt-2">
-                  <Input
-                    id="networkPassword"
-                    type={showPassword ? "text" : "password"}
-                    value={localSettings.networkPassword}
-                    onChange={(e) => setLocalSettings(prev => ({ ...prev, networkPassword: e.target.value }))}
-                    placeholder={hasStoredPassword ? "••••••••••" : "Enter password"}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  {hasStoredPassword ? "Leave blank to keep existing password" : "Password will be securely hashed before storage"}
-                </p>
               </div>
             </div>
           </div>
