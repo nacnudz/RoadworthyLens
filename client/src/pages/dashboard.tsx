@@ -370,7 +370,10 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                         Completed: {inspection.completedAt ? new Date(inspection.completedAt).toLocaleDateString() : new Date(inspection.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    {getStatusBadge(inspection.status)}
+                    <div className="flex flex-col items-center">
+                      {getStatusBadge(inspection.status)}
+                      <Badge className="bg-blue-100 text-blue-800 mt-1 text-xs">Completed</Badge>
+                    </div>
                   </div>
                   
                   <div className="flex space-x-2">

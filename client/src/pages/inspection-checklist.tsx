@@ -312,14 +312,24 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               <p className="text-sm text-gray-600">{currentInspection.clientName || "No client name"}</p>
               <p className="text-xs text-gray-500">{currentInspection.vehicleDescription || "No vehicle description"}</p>
             </div>
-            {currentInspection.uploadedToVicRoadsAt && (
-              <div className="flex flex-col items-center ml-4">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-600" />
+            <div className="flex space-x-2 ml-4">
+              {(currentInspection.status === "pass" || currentInspection.status === "fail") && (
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="text-xs text-blue-600 mt-1">Completed</span>
                 </div>
-                <span className="text-xs text-green-600 mt-1">Uploaded</span>
-              </div>
-            )}
+              )}
+              {currentInspection.uploadedToVicRoadsAt && (
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-green-600" />
+                  </div>
+                  <span className="text-xs text-green-600 mt-1">Uploaded</span>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Only show progress bar for in-progress inspections */}
