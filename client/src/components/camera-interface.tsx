@@ -56,34 +56,52 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   });
 
   useEffect(() => {
-    startCamera();
+    // Add a small delay to ensure the video element is properly mounted
+    const timer = setTimeout(() => {
+      startCamera();
+    }, 100);
+    
     return () => {
+      clearTimeout(timer);
       stopCamera();
     };
   }, [facingMode]);
 
   const startCamera = async () => {
+    console.log('Starting camera initialization...');
+    setIsLoading(true);
+    
+    let mediaStream: MediaStream | null = null;
+    
     try {
-      setIsLoading(true);
-      console.log('Starting camera initialization...');
-      
       // Stop existing stream first
       if (stream) {
         console.log('Stopping existing stream...');
         stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+      
+      console.log('Step 1: Checking video element...');
+      // Wait for video element to be available
+      let attempts = 0;
+      while (!videoRef.current && attempts < 10) {
+        console.log(`Waiting for video ref, attempt ${attempts + 1}`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
       }
       
       if (!videoRef.current) {
-        console.error('Video ref not available');
-        setIsLoading(false);
-        return;
+        throw new Error('Video element not available');
       }
+      
+      console.log('Step 2: Video element available, checking media devices...');
 
       // Check if camera is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera not supported by this browser');
       }
 
+      console.log('Step 3: Enumerating devices...');
       // First check if we have camera devices
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -93,98 +111,54 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         throw new Error('No camera devices found');
       }
 
-      // Try different camera configurations for better compatibility
-      const constraints = [
-        // Try environment camera first (back camera on mobile)
-        {
-          video: { 
-            facingMode: facingMode,
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        },
-        // Fallback to any camera with lower resolution
-        {
-          video: { 
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          }
-        },
-        // Most basic fallback
-        {
-          video: true
+      console.log('Step 4: Requesting camera access...');
+      // Try to get user media with basic constraints first
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 640 },
+          height: { ideal: 480 }
         }
-      ];
-
-      let newStream: MediaStream | null = null;
-      let lastError: any = null;
-      
-      for (let i = 0; i < constraints.length; i++) {
-        const constraint = constraints[i];
-        try {
-          console.log(`Trying camera constraint ${i + 1}:`, constraint);
-          newStream = await navigator.mediaDevices.getUserMedia(constraint);
-          console.log('Camera stream obtained successfully:', newStream.getTracks().length, 'tracks');
-          break;
-        } catch (err) {
-          lastError = err;
-          console.log(`Camera constraint ${i + 1} failed:`, err);
-          continue;
-        }
-      }
-
-      if (!newStream) {
-        throw lastError || new Error('No camera available');
-      }
-      
-      // Set video source
-      console.log('Setting video source...');
-      videoRef.current.srcObject = newStream;
-      
-      // Ensure video loads and plays
-      await new Promise<void>((resolve, reject) => {
-        const video = videoRef.current!;
-        
-        const onLoadedMetadata = () => {
-          console.log('Video metadata loaded, attempting to play...');
-          video.play()
-            .then(() => {
-              console.log('Video playing successfully');
-              setStream(newStream);
-              setIsLoading(false);
-              resolve();
-            })
-            .catch((playError) => {
-              console.error('Video play failed:', playError);
-              reject(playError);
-            });
-        };
-        
-        const onError = (errorEvent: any) => {
-          console.error('Video element error:', errorEvent);
-          reject(new Error('Video element error'));
-        };
-        
-        video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
-        video.addEventListener('error', onError, { once: true });
-        
-        // Set a timeout in case metadata doesn't load
-        setTimeout(() => {
-          video.removeEventListener('loadedmetadata', onLoadedMetadata);
-          video.removeEventListener('error', onError);
-          if (video.readyState === 0) {
-            console.error('Video failed to load within timeout');
-            reject(new Error('Video failed to load'));
-          }
-        }, 10000);
       });
       
+      console.log('Step 5: Camera stream obtained successfully:', mediaStream.getTracks().length, 'tracks');
+      
+      console.log('Step 6: Setting up video element...');
+      // Set up video element
+      const video = videoRef.current;
+      video.srcObject = mediaStream;
+      
+      console.log('Step 7: Video source set, ready state:', video.readyState);
+      
+      // Set stream in state
+      setStream(mediaStream);
+      
+      console.log('Step 8: Attempting to play video...');
+      // Try to play the video without awaiting
+      video.play().catch((playError) => {
+        console.warn('Video play failed, but continuing:', playError);
+      });
+      
+      // Mark as done
+      setIsLoading(false);
+      console.log('Step 9: Camera setup complete');
+      
     } catch (error) {
-      console.error("Failed to start camera:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error("Camera initialization failed at step:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error constructor:", error?.constructor?.name);
+      console.error("Error message:", error instanceof Error ? error.message : 'No message');
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack');
+      
+      // Clean up stream if we got one
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown camera error';
       toast({
         title: "Camera Error",
-        description: `Could not access camera: ${errorMessage}. Please check permissions and try again.`,
+        description: `Could not access camera: ${errorMessage}`,
         variant: "destructive",
       });
       setIsLoading(false);
