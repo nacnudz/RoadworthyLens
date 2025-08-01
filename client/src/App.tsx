@@ -10,10 +10,12 @@ import Settings from "@/pages/settings";
 import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
 import CameraInterface from "@/components/camera-interface";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import SplashScreen from "@/components/splash-screen";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const [showSplash, setShowSplash] = useState(true);
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [currentInspectionId, setCurrentInspectionId] = useState<string | null>(null);
   const [cameraData, setCameraData] = useState<{inspectionId: string, itemName: string} | null>(null);
@@ -42,6 +44,15 @@ function Router() {
     setCurrentInspectionId(inspectionId);
     setCurrentView("checklist");
   };
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  // Show splash screen on first load
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-surface">
