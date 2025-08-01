@@ -65,12 +65,16 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const startCamera = async () => {
     try {
       setIsLoading(true);
+      console.log('Starting camera initialization...');
+      
       // Stop existing stream first
       if (stream) {
+        console.log('Stopping existing stream...');
         stream.getTracks().forEach(track => track.stop());
       }
       
       if (!videoRef.current) {
+        console.error('Video ref not available');
         setIsLoading(false);
         return;
       }
@@ -80,48 +84,61 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         throw new Error('Camera not supported by this browser');
       }
 
-      // Log camera initialization for debugging
-      console.log('Starting camera initialization...');
+      // First check if we have camera devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      console.log('Available video devices:', videoDevices.length);
+      
+      if (videoDevices.length === 0) {
+        throw new Error('No camera devices found');
+      }
 
       // Try different camera configurations for better compatibility
       const constraints = [
         // Try environment camera first (back camera on mobile)
         {
           video: { 
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1920, min: 640 },
-            height: { ideal: 1080, min: 480 }
+            facingMode: facingMode,
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
           }
         },
-        // Fallback to any camera
+        // Fallback to any camera with lower resolution
         {
           video: { 
-            width: { ideal: 1920, min: 640 },
-            height: { ideal: 1080, min: 480 }
+            width: { ideal: 640 },
+            height: { ideal: 480 }
           }
         },
-        // Basic fallback
+        // Most basic fallback
         {
           video: true
         }
       ];
 
       let newStream: MediaStream | null = null;
+      let lastError: any = null;
       
-      for (const constraint of constraints) {
+      for (let i = 0; i < constraints.length; i++) {
+        const constraint = constraints[i];
         try {
+          console.log(`Trying camera constraint ${i + 1}:`, constraint);
           newStream = await navigator.mediaDevices.getUserMedia(constraint);
+          console.log('Camera stream obtained successfully:', newStream.getTracks().length, 'tracks');
           break;
         } catch (err) {
-          console.log('Camera constraint failed, trying next:', err);
+          lastError = err;
+          console.log(`Camera constraint ${i + 1} failed:`, err);
           continue;
         }
       }
 
       if (!newStream) {
-        throw new Error('No camera available');
+        throw lastError || new Error('No camera available');
       }
       
+      // Set video source
+      console.log('Setting video source...');
       videoRef.current.srcObject = newStream;
       
       // Ensure video loads and plays
@@ -129,16 +146,24 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         const video = videoRef.current!;
         
         const onLoadedMetadata = () => {
+          console.log('Video metadata loaded, attempting to play...');
           video.play()
             .then(() => {
+              console.log('Video playing successfully');
               setStream(newStream);
               setIsLoading(false);
               resolve();
             })
-            .catch(reject);
+            .catch((playError) => {
+              console.error('Video play failed:', playError);
+              reject(playError);
+            });
         };
         
-        const onError = () => reject(new Error('Video element error'));
+        const onError = (errorEvent: any) => {
+          console.error('Video element error:', errorEvent);
+          reject(new Error('Video element error'));
+        };
         
         video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
         video.addEventListener('error', onError, { once: true });
@@ -148,6 +173,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
           video.removeEventListener('loadedmetadata', onLoadedMetadata);
           video.removeEventListener('error', onError);
           if (video.readyState === 0) {
+            console.error('Video failed to load within timeout');
             reject(new Error('Video failed to load'));
           }
         }, 10000);
@@ -155,9 +181,10 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       
     } catch (error) {
       console.error("Failed to start camera:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Camera Error",
-        description: "Could not access camera. Please check permissions and try again.",
+        description: `Could not access camera: ${errorMessage}. Please check permissions and try again.`,
         variant: "destructive",
       });
       setIsLoading(false);
@@ -176,18 +203,66 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   };
 
   const capturePhoto = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log('Capture photo clicked');
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Video or canvas ref not available');
+      return;
+    }
+    
+    if (!stream) {
+      console.error('No video stream available');
+      toast({
+        title: "Error",
+        description: "Camera not ready. Please wait for camera to load.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
-      const { capturePhoto: capturePhotoLib, dataURItoBlob } = await import("@/lib/camera");
-      const dataUrl = capturePhotoLib(videoRef.current);
-      const blob = dataURItoBlob(dataUrl);
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      // Check if video is actually playing
+      if (video.readyState < 2) {
+        throw new Error('Video not ready for capture');
+      }
+      
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        throw new Error('Video dimensions not available');
+      }
+      
+      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+      
+      // Draw the current video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to blob
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      console.log('Photo captured, data URL length:', dataUrl.length);
+      
+      // Convert data URL to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      
+      console.log('Blob created, size:', blob.size);
       uploadPhotoMutation.mutate(blob);
     } catch (error) {
       console.error("Failed to capture photo:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Error",
-        description: "Failed to capture photo",
+        description: `Failed to capture photo: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -210,8 +285,16 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
               autoPlay
               playsInline
               muted
+              webkit-playsinline="true"
               className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
+              style={{ 
+                transform: 'scaleX(-1)',
+                backgroundColor: '#000'
+              }}
+              onLoadStart={() => console.log('Video load started')}
+              onLoadedData={() => console.log('Video data loaded')}
+              onPlay={() => console.log('Video started playing')}
+              onError={(e) => console.error('Video error:', e)}
             />
             <canvas ref={canvasRef} className="hidden" />
           </>
