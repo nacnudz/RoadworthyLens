@@ -273,11 +273,11 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     setShowCompletionDialog(true);
   };
 
-  const handleFinalizeCompletion = () => {
+  const handleFinalizeCompletion = (status: "pass" | "fail") => {
     if (currentInspection.id) {
       completeInspectionMutation.mutate({ 
         inspectionId: currentInspection.id, 
-        status: selectedResult 
+        status: status 
       });
     }
   };
@@ -539,7 +539,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               <Button 
                 onClick={() => {
                   setSelectedResult("pass");
-                  handleFinalizeCompletion();
+                  handleFinalizeCompletion("pass");
                 }}
                 className="w-full bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
                 disabled={completeInspectionMutation.isPending}
@@ -556,7 +556,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               <Button 
                 onClick={() => {
                   setSelectedResult("fail");
-                  handleFinalizeCompletion();
+                  handleFinalizeCompletion("fail");
                 }}
                 className="w-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
                 disabled={completeInspectionMutation.isPending}
