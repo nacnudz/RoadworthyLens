@@ -141,9 +141,8 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
             <div className="flex space-x-3 pt-4">
               <Button 
                 type="button" 
-                variant="secondary"
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
                 onClick={onCancel} 
-                className="flex-1"
                 disabled={createInspectionMutation.isPending}
               >
                 Cancel

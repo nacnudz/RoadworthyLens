@@ -338,7 +338,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                 <span>Progress</span>
                 <span>{percentage}%</span>
               </div>
-              <Progress value={percentage} className="h-2" />
+              <Progress value={percentage} className="h-2 [&>div]:bg-primary" />
               <div className="text-xs text-gray-500 mt-1">
                 {completed} of {total} items completed
               </div>
@@ -475,7 +475,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <Card>
               <CardContent className="p-4">
                 <Button 
-                  className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600 transition-all duration-200"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg transition-all duration-200"
                   onClick={handleSaveInspection}
                   disabled={saveInspectionMutation.isPending}
                 >
@@ -500,7 +500,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             <Card>
               <CardContent className="p-4">
                 <Button 
-                  className="w-full bg-primary text-primary-foreground py-3 text-lg hover:bg-primary-dark transition-all duration-200"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg transition-all duration-200"
                   onClick={handleCompleteInspection}
                   disabled={!canComplete() || completeInspectionMutation.isPending}
                 >
