@@ -11,6 +11,7 @@ interface PhotoGalleryProps {
   isOpen: boolean;
   onClose: () => void;
   onDeletePhoto?: (photoIndex: number) => void;
+  isReadOnly?: boolean;
 }
 
 export default function PhotoGallery({ 
@@ -18,7 +19,8 @@ export default function PhotoGallery({
   photos, 
   isOpen, 
   onClose, 
-  onDeletePhoto 
+  onDeletePhoto,
+  isReadOnly = false
 }: PhotoGalleryProps) {
   const { toast } = useToast();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -33,21 +35,23 @@ export default function PhotoGallery({
       if (currentPhotoIndex >= photos.length - 1 && photos.length > 1) {
         setCurrentPhotoIndex(photos.length - 2);
       } else if (photos.length === 1) {
+        // Close modal when last photo is deleted
         onClose();
       }
-      
-      toast({
-        title: "Photo Deleted",
-        description: `Photo ${currentPhotoIndex + 1} has been removed`,
-      });
     }
   };
+
+  // Close modal if no photos remain (after deletion)
+  if (isOpen && photos.length === 0) {
+    onClose();
+    return null;
+  }
 
   if (!isOpen || photos.length === 0) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] p-0 bg-black">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black flex flex-col">
         <DialogHeader className="p-4 bg-black/80 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -68,7 +72,7 @@ export default function PhotoGallery({
         </DialogHeader>
 
         {/* Main photo display */}
-        <div className="flex-1 relative bg-black flex items-center justify-center">
+        <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
           <img
             src={photos[currentPhotoIndex]}
             alt={`${itemName} photo ${currentPhotoIndex + 1}`}
@@ -109,7 +113,7 @@ export default function PhotoGallery({
         )}
 
         {/* Action buttons */}
-        {onDeletePhoto && (
+        {onDeletePhoto && !isReadOnly && (
           <div className="p-4 bg-black/80 border-t border-gray-700">
             <div className="flex justify-center">
               <Button

@@ -78,6 +78,27 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
     },
   });
 
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (data: { itemName: string; photoIndex: number }) => {
+      const response = await apiRequest("DELETE", `/api/inspections/${inspectionId}/photos/${encodeURIComponent(data.itemName)}/${data.photoIndex}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections", inspectionId] });
+      toast({
+        title: "Success",
+        description: "Photo deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error", 
+        description: error.message || "Failed to delete photo",
+        variant: "destructive",
+      });
+    },
+  });
+
   const completeInspectionMutation = useMutation({
     mutationFn: async ({ inspectionId, status }: { inspectionId: string; status: "pass" | "fail" }) => {
       // First update the status
@@ -229,6 +250,13 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         status: selectedResult 
       });
     }
+  };
+
+  const handleDeletePhoto = (photoIndex: number) => {
+    deletePhotoMutation.mutate({ 
+      itemName: selectedGalleryItem, 
+      photoIndex 
+    });
   };
 
   return (
@@ -516,32 +544,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           setPhotoGalleryOpen(false);
           setSelectedGalleryItem("");
         }}
-        onDeletePhoto={async (photoIndex) => {
-          try {
-            const response = await fetch(`/api/inspections/${inspectionId}/photos/${encodeURIComponent(selectedGalleryItem)}/${photoIndex}`, {
-              method: 'DELETE'
-            });
-            
-            if (!response.ok) {
-              throw new Error('Failed to delete photo');
-            }
-            
-            // Refetch inspection data to update photo counts and checklist status
-            queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspectionId}`] });
-            
-            toast({
-              title: "Photo Deleted",
-              description: `Photo ${photoIndex + 1} has been removed from ${selectedGalleryItem}`,
-            });
-          } catch (error) {
-            console.error('Failed to delete photo:', error);
-            toast({
-              title: "Delete Failed",
-              description: "Could not delete photo. Please try again.",
-              variant: "destructive",
-            });
-          }
-        }}
+        onDeletePhoto={!isViewOnly && !currentInspection.completedAt ? handleDeletePhoto : undefined}
+        isReadOnly={isViewOnly || !!currentInspection.completedAt}
       />
     </div>
   );
