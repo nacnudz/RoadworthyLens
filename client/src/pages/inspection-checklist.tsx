@@ -294,9 +294,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Back Button */}
       <div className="mb-4">
         <Button 
-          variant="ghost" 
+          className="bg-blue-600 hover:bg-blue-700 text-white p-2"
           onClick={onClose}
-          className="p-2"
         >
           <ArrowLeft className="mr-2" />
           Back to Dashboard
