@@ -21,7 +21,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [cameraInitialized, setCameraInitialized] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const uploadPhotoMutation = useMutation({
     mutationFn: async (photoBlob: Blob) => {
@@ -57,21 +57,19 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     },
   });
 
-  // Initialize camera when user first opens camera interface  
+  // Clean up camera when component unmounts
   useEffect(() => {
-    console.log('Camera interface mounted');
-    
     return () => {
       stopCamera();
     };
   }, []);
 
-  // Start camera when facingMode changes (after initial start)
+  // Restart camera when facingMode changes (only if already started)
   useEffect(() => {
-    if (cameraInitialized) {
+    if (cameraReady) {
       startCamera();
     }
-  }, [facingMode, cameraInitialized]);
+  }, [facingMode]);
 
   const startCamera = async () => {
     console.log('Starting camera initialization...');
@@ -154,6 +152,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       
       // Mark as done
       setIsLoading(false);
+      setCameraReady(true);
       console.log('Step 9: Camera setup complete');
       
     } catch (error) {
@@ -180,6 +179,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
+      setCameraReady(false);
     }
   };
 
@@ -187,11 +187,17 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     setFacingMode(current => current === "user" ? "environment" : "user");
   };
 
-  const handleStartCamera = async () => {
-    setIsLoading(true);
-    setCameraError(null);
-    setCameraInitialized(true);
-    await startCamera();
+  const handleTakePhoto = async () => {
+    // If camera not ready, start it first
+    if (!cameraReady) {
+      setIsLoading(true);
+      setCameraError(null);
+      await startCamera();
+      return;
+    }
+    
+    // Camera is ready, take photo
+    await capturePhoto();
   };
 
   const capturePhoto = async () => {
@@ -284,26 +290,20 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         />
         <canvas ref={canvasRef} className="hidden" />
         
-        {/* Camera not started overlay */}
-        {!cameraInitialized && !isLoading && !cameraError && (
+        {/* Camera not ready overlay */}
+        {!cameraReady && !isLoading && !cameraError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
-            <div className="text-center mb-8">
+            <div className="text-center">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
               </div>
-              <p className="text-lg font-medium mb-2">Camera Access Required</p>
-              <p className="text-sm opacity-75 text-center px-4 mb-6">
-                Tap the button below to start the camera and take photos for this inspection item.
+              <p className="text-lg font-medium mb-2">Ready to Take Photo</p>
+              <p className="text-sm opacity-75 text-center px-4">
+                Press the capture button to access camera and take a photo
               </p>
             </div>
-            <Button
-              onClick={handleStartCamera}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-full"
-            >
-              Start Camera
-            </Button>
           </div>
         )}
         
@@ -322,7 +322,11 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
             <p className="text-lg mb-4">Camera Error</p>
             <p className="text-sm opacity-75 text-center px-4">{cameraError}</p>
             <button 
-              onClick={handleStartCamera}
+              onClick={() => {
+                setCameraError(null);
+                setIsLoading(true);
+                startCamera();
+              }}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Try Again
@@ -352,7 +356,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
           </Button>
 
           <Button
-            onClick={capturePhoto}
+            onClick={handleTakePhoto}
             disabled={isLoading || uploadPhotoMutation.isPending}
             className="bg-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-gray-100"
           >
@@ -363,7 +367,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
             variant="ghost"
             size="icon"
             onClick={switchCamera}
-            disabled={isLoading}
+            disabled={isLoading || !cameraReady}
             className="bg-white/20 text-white hover:bg-white/30 rounded-full p-3"
           >
             <RotateCcw className="text-xl" />

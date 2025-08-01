@@ -75,6 +75,28 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 
 ## Recent Updates (January 2025)
 
+### Privacy-Conscious Camera Implementation
+- Modified camera interface to only access device camera when take photo button is pressed
+- Removed automatic camera initialization for better privacy control
+- Camera connection properly closed when exiting camera screen
+- Clear user interface showing camera will activate on capture button press
+- Improved user control over camera permissions and access
+
+### Mobile-Responsive Settings Page
+- Enhanced settings page layout with responsive design for mobile devices
+- Password field with show/hide toggle functionality using eye icons
+- Conditional password updates (only saves new passwords, preserves existing)
+- Password masking with 10 dots (••••••••••) for stored passwords
+- Improved form layout with proper mobile breakpoints
+
+### Network Upload & Retry System
+- Loading animation during network uploads with accessibility checks
+- Upload completion date/time tracking in inspection details
+- Manual retry button for failed uploads with comprehensive error handling
+- Network upload functionality with simulated SMB file transfer
+- Upload status tracking (pending/success/failed) with visual indicators
+- Retry functionality accessible from completed inspection view
+
 ### Photo Gallery Implementation
 - Created simplified photo gallery component for viewing inspection item photos
 - Full-screen modal with clean interface focused on photo viewing
