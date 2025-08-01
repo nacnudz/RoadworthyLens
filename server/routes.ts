@@ -18,35 +18,12 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadDir,
-    filename: async (req, file, cb) => {
-      try {
-        const { itemName } = req.body;
-        const inspectionId = req.params?.id;
-        const ext = path.extname(file.originalname) || '.jpg';
-        
-        if (!itemName || !inspectionId) {
-          return cb(new Error('Missing itemName or inspectionId'), '');
-        }
-
-        // Get current inspection to count existing photos for this item
-        const inspection = await storage.getInspection(inspectionId);
-        if (!inspection) {
-          return cb(new Error('Inspection not found'), '');
-        }
-
-        const photos = (inspection.photos as Record<string, string[]>) || {};
-        const existingPhotos = photos[itemName] || [];
-        const photoNumber = existingPhotos.length + 1;
-
-        // Create clean filename: RoadworthyNumber_ItemName_PhotoNumber + extension
-        const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '');
-        const sanitizedRoadworthyNumber = inspection.roadworthyNumber.replace(/[^a-zA-Z0-9]/g, '');
-        const filename = `${sanitizedRoadworthyNumber}_${sanitizedItemName}_${photoNumber}${ext}`;
-        
-        cb(null, filename);
-      } catch (error) {
-        cb(error as Error, '');
-      }
+    filename: (req, file, cb) => {
+      // Generate a temporary filename, we'll rename it later
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname) || '.jpg';
+      const tempFilename = `temp_${timestamp}${ext}`;
+      cb(null, tempFilename);
     }
   }),
   limits: {
@@ -156,13 +133,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Inspection not found" });
       }
 
-      // Update photos record with full URLs
+      // Count existing photos for this item to determine the photo number
       const photos = inspection.photos as Record<string, string[]> || {};
+      const existingPhotos = photos[itemName] || [];
+      const photoNumber = existingPhotos.length + 1;
+
+      // Generate the proper filename
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '');
+      const sanitizedRoadworthyNumber = inspection.roadworthyNumber.replace(/[^a-zA-Z0-9]/g, '');
+      const properFilename = `${sanitizedRoadworthyNumber}_${sanitizedItemName}_${photoNumber}${ext}`;
+
+      // Rename the temporary file to the proper filename
+      const tempFilePath = path.join(uploadDir, req.file.filename);
+      const newFilePath = path.join(uploadDir, properFilename);
+      
+      try {
+        fs.renameSync(tempFilePath, newFilePath);
+      } catch (renameError) {
+        console.error('Failed to rename file:', renameError);
+        // If rename fails, clean up temp file and return error
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        return res.status(500).json({ message: "Failed to process photo file" });
+      }
+
+      // Update photos record with the proper filename URL
       if (!photos[itemName]) {
         photos[itemName] = [];
       }
-      // Store the full URL path for frontend consumption
-      photos[itemName].push(`/api/photos/${req.file.filename}`);
+      photos[itemName].push(`/api/photos/${properFilename}`);
 
       // Update checklist item as completed
       const checklistItems = inspection.checklistItems as Record<string, boolean> || {};
@@ -175,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         message: "Photo uploaded successfully",
-        filename: req.file.filename,
+        filename: properFilename,
         inspection: updatedInspection
       });
     } catch (error) {
