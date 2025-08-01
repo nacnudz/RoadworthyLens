@@ -303,7 +303,6 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
           webkit-playsinline="true"
           className="w-full h-full object-cover"
           style={{ 
-            transform: 'scaleX(-1)',
             backgroundColor: '#000'
           }}
           onLoadStart={() => console.log('Video load started')}
