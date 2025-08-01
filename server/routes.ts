@@ -239,8 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 fs.mkdirSync(networkDir, { recursive: true });
                 console.log(`Created network directory: ${networkDir}`);
               }
-            } catch (dirError) {
-              console.warn(`Could not create network directory: ${dirError.message}`);
+            } catch (dirError: unknown) {
+              console.warn(`Could not create network directory: ${(dirError as Error).message}`);
               // Continue with upload attempt anyway
             }
             
@@ -259,8 +259,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     fs.copyFileSync(sourcePath, destPath);
                     console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
                     uploadedFiles++;
-                  } catch (copyError) {
-                    console.error(`Failed to copy file ${filename}: ${copyError.message}`);
+                  } catch (copyError: unknown) {
+                    console.error(`Failed to copy file ${filename}: ${(copyError as Error).message}`);
                     // Still count the file so the UI shows some success
                   }
                 } else {
@@ -277,8 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 fs.copyFileSync(reportPath, networkReportPath);
                 console.log(`Copied inspection report to: ${networkReportPath}`);
               }
-            } catch (reportError) {
-              console.warn(`Failed to copy inspection report: ${reportError.message}`);
+            } catch (reportError: unknown) {
+              console.warn(`Failed to copy inspection report: ${(reportError as Error).message}`);
             }
             
             // Simulate successful upload
@@ -298,11 +298,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log("SMB upload completed successfully", networkUploadResult);
           }
           
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("Network upload failed:", error);
           networkUploadResult = {
             success: false,
-            error: `Network upload failed: ${error.message}`,
+            error: `Network upload failed: ${(error as Error).message}`,
             message: "Photos saved locally only"
           };
           
@@ -353,7 +353,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         networkUpload: networkUploadResult,
         inspection: updatedInspection
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error("Complete inspection error:", error);
       res.status(500).json({ message: "Failed to complete inspection" });
     }
   });
@@ -377,8 +378,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Simulate network accessibility check
-      const isNetworkAccessible = Math.random() > 0.2; // 80% success rate for demo
+      // Test network accessibility by attempting to access the path
+      let isNetworkAccessible = true;
+      try {
+        // Try to access the parent network folder to verify connectivity
+        if (!fs.existsSync(settings.networkFolderPath)) {
+          // Try to create the parent directory to test access
+          fs.mkdirSync(settings.networkFolderPath, { recursive: true });
+        }
+      } catch (accessError: unknown) {
+        console.error("Network accessibility test failed:", (accessError as Error).message);
+        isNetworkAccessible = false;
+      }
       
       if (!isNetworkAccessible) {
         return res.status(400).json({ 
@@ -399,8 +410,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fs.mkdirSync(networkDir, { recursive: true });
           console.log(`Created network directory: ${networkDir}`);
         }
-      } catch (dirError) {
-        console.warn(`Could not create network directory: ${dirError.message}`);
+      } catch (dirError: unknown) {
+        console.warn(`Could not create network directory: ${(dirError as Error).message}`);
         throw new Error(`Cannot access network location: ${settings.networkFolderPath}`);
       }
       
@@ -416,9 +427,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               fs.copyFileSync(sourcePath, destPath);
               console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
               uploadedFiles++;
-            } catch (copyError) {
-              console.error(`Failed to copy file ${filename}: ${copyError.message}`);
-              throw new Error(`File copy failed: ${copyError.message}`);
+            } catch (copyError: unknown) {
+              console.error(`Failed to copy file ${filename}: ${(copyError as Error).message}`);
+              throw new Error(`File copy failed: ${(copyError as Error).message}`);
             }
           }
         }
@@ -433,8 +444,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           fs.copyFileSync(reportPath, networkReportPath);
           console.log(`Copied inspection report to: ${networkReportPath}`);
-        } catch (reportError) {
-          console.warn(`Failed to copy inspection report: ${reportError.message}`);
+        } catch (reportError: unknown) {
+          console.warn(`Failed to copy inspection report: ${(reportError as Error).message}`);
         }
       }
 
@@ -451,14 +462,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uploadedAt: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       await storage.updateInspection(id, {
         uploadStatus: "failed"
       });
       
       res.status(500).json({ 
         message: "Upload failed", 
-        error: error.message 
+        error: (error as Error).message 
       });
     }
   });
