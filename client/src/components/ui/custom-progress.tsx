@@ -10,9 +10,6 @@ const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
   ({ className, value = 0, ...props }, ref) => {
     const percentage = Math.max(0, Math.min(100, value))
     
-    // Use blue for 0-99%, green only for 100%
-    const progressColor = percentage === 100 ? 'rgb(34, 197, 94)' : 'hsl(207, 90%, 54%)'
-    
     return (
       <div
         ref={ref}
@@ -22,12 +19,15 @@ const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
         )}
         {...props}
       >
+        {/* Blue background bar (full width) */}
         <div
-          className="h-full transition-all duration-300 ease-in-out"
-          style={{ 
-            width: `${percentage}%`,
-            backgroundColor: progressColor
-          }}
+          className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-in-out"
+          style={{ width: "100%" }}
+        />
+        {/* Green progress bar (grows from left to right) */}
+        <div
+          className="absolute top-0 left-0 h-full bg-green-600 transition-all duration-300 ease-in-out"
+          style={{ width: `${percentage}%` }}
         />
       </div>
     )
