@@ -136,8 +136,20 @@
   
   /* But preserve button and badge colors */
   .bg-card .bg-primary, .bg-card .bg-green-600, .bg-card .bg-red-600, 
-  .bg-card .bg-gray-600, .bg-card .bg-secondary, .bg-card .bg-destructive {
+  .bg-card .bg-gray-600, .bg-card .bg-gray-700, .bg-card .bg-secondary, .bg-card .bg-destructive,
+  .bg-primary, .bg-green-600, .bg-red-600, .bg-gray-600, .bg-gray-700, .bg-destructive {
     color: white !important;
+  }
+  
+  /* Fix text in gray background sections like Initial Inspection heading */
+  .bg-gray-50 .text-on-surface,
+  .bg-gray-50 h1, .bg-gray-50 h2, .bg-gray-50 h3, .bg-gray-50 h4, .bg-gray-50 h5, .bg-gray-50 h6,
+  .bg-gray-50 .font-semibold {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  .bg-gray-50 p, .bg-gray-50 span, .bg-gray-50 .text-gray-600 {
+    color: hsl(0, 0%, 30%) !important;
   }
   
   /* Drop shadows for forms and cards */
