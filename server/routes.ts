@@ -66,6 +66,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get uploaded inspections
+  app.get("/api/inspections/uploaded", async (req, res) => {
+    try {
+      const allInspections = await storage.getAllInspections();
+      const uploadedInspections = allInspections.filter(inspection => 
+        inspection.uploadedToVicRoadsAt && inspection.completedAt
+      );
+      res.json(uploadedInspections);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch uploaded inspections" });
+    }
+  });
+
   // Get single inspection
   app.get("/api/inspections/:id", async (req, res) => {
     try {
@@ -468,19 +481,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to mark as uploaded to VicRoads" });
-    }
-  });
-
-  // Get uploaded inspections
-  app.get("/api/inspections/uploaded", async (req, res) => {
-    try {
-      const allInspections = await storage.getAllInspections();
-      const uploadedInspections = allInspections.filter(inspection => 
-        inspection.uploadedToVicRoadsAt && inspection.completedAt
-      );
-      res.json(uploadedInspections);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch uploaded inspections" });
     }
   });
 

@@ -392,7 +392,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                           Uploading...
                         </>
                       ) : (
-                        "Upload to VicRoads"
+                        "Uploaded to VicRoads"
                       )}
                     </Button>
                     {inspection.status === "fail" && (
