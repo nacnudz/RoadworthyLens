@@ -462,7 +462,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           <Card>
             <CardContent className="p-4">
               <Button 
-                className="w-full bg-secondary text-secondary-foreground py-3 text-lg hover:bg-gray-600 transition-all duration-200"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg transition-all duration-200"
                 onClick={onClose}
               >
                 <ArrowLeft className="mr-2" />
