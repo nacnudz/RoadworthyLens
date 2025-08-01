@@ -75,12 +75,12 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 
 ## Recent Updates (January 2025)
 
-### Privacy-Conscious Camera Implementation
-- Modified camera interface to only access device camera when take photo button is pressed
-- Removed automatic camera initialization for better privacy control
-- Camera connection properly closed when exiting camera screen
-- Clear user interface showing camera will activate on capture button press
-- Improved user control over camera permissions and access
+### Streamlined Camera Implementation
+- Camera automatically activates when camera interface is opened for immediate access
+- Camera connection properly closed when exiting camera screen and after photo capture
+- Smooth user experience with automatic initialization and cleanup
+- Photo capture automatically closes camera interface after successful upload
+- Optimized for quick photo taking workflow
 
 ### Mobile-Responsive Settings Page
 - Enhanced settings page layout with responsive design for mobile devices

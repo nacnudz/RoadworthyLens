@@ -19,7 +19,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
 
@@ -46,6 +46,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         title: "Success",
         description: "Photo uploaded successfully",
       });
+      // Close camera interface after successful photo upload
       onPhotoTaken();
     },
     onError: (error: any) => {
@@ -57,14 +58,23 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     },
   });
 
-  // Clean up camera when component unmounts
+  // Initialize camera automatically when component mounts
   useEffect(() => {
+    const initializeCamera = async () => {
+      console.log('Component mounted, starting camera automatically...');
+      setIsLoading(true);
+      setCameraError(null);
+      await startCamera();
+    };
+    
+    initializeCamera();
+    
     return () => {
       stopCamera();
     };
   }, []);
 
-  // Restart camera when facingMode changes (only if already started)
+  // Restart camera when facingMode changes
   useEffect(() => {
     if (cameraReady) {
       startCamera();
@@ -290,22 +300,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         />
         <canvas ref={canvasRef} className="hidden" />
         
-        {/* Camera not ready overlay */}
-        {!cameraReady && !isLoading && !cameraError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="text-lg font-medium mb-2">Ready to Take Photo</p>
-              <p className="text-sm opacity-75 text-center px-4">
-                Press the capture button to access camera and take a photo
-              </p>
-            </div>
-          </div>
-        )}
+
         
         {/* Loading overlay */}
         {isLoading && (
