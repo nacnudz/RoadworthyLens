@@ -100,6 +100,8 @@ interface SettingsProps {
 export default function Settings({ onCancel }: SettingsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showPassword, setShowPassword] = useState(false);
+  const [hasStoredPassword, setHasStoredPassword] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["/api/settings"],

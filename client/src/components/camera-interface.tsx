@@ -19,8 +19,9 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraInitialized, setCameraInitialized] = useState(false);
 
   const uploadPhotoMutation = useMutation({
     mutationFn: async (photoBlob: Blob) => {
@@ -56,21 +57,21 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     },
   });
 
-  // Initialize camera when component mounts
+  // Initialize camera when user first opens camera interface  
   useEffect(() => {
-    const initializeCamera = async () => {
-      console.log('Component mounted, waiting for render...');
-      // Wait for the DOM to render
-      await new Promise(resolve => setTimeout(resolve, 100));
-      startCamera();
-    };
-    
-    initializeCamera();
+    console.log('Camera interface mounted');
     
     return () => {
       stopCamera();
     };
-  }, [facingMode]);
+  }, []);
+
+  // Start camera when facingMode changes (after initial start)
+  useEffect(() => {
+    if (cameraInitialized) {
+      startCamera();
+    }
+  }, [facingMode, cameraInitialized]);
 
   const startCamera = async () => {
     console.log('Starting camera initialization...');
@@ -186,6 +187,13 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     setFacingMode(current => current === "user" ? "environment" : "user");
   };
 
+  const handleStartCamera = async () => {
+    setIsLoading(true);
+    setCameraError(null);
+    setCameraInitialized(true);
+    await startCamera();
+  };
+
   const capturePhoto = async () => {
     console.log('Capture photo clicked');
     
@@ -276,6 +284,29 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         />
         <canvas ref={canvasRef} className="hidden" />
         
+        {/* Camera not started overlay */}
+        {!cameraInitialized && !isLoading && !cameraError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A1 1 0 0013 4H7a1 1 0 00-.707.293L5.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium mb-2">Camera Access Required</p>
+              <p className="text-sm opacity-75 text-center px-4 mb-6">
+                Tap the button below to start the camera and take photos for this inspection item.
+              </p>
+            </div>
+            <Button
+              onClick={handleStartCamera}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-full"
+            >
+              Start Camera
+            </Button>
+          </div>
+        )}
+        
         {/* Loading overlay */}
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
@@ -291,7 +322,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
             <p className="text-lg mb-4">Camera Error</p>
             <p className="text-sm opacity-75 text-center px-4">{cameraError}</p>
             <button 
-              onClick={startCamera}
+              onClick={handleStartCamera}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Try Again
