@@ -20,6 +20,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const uploadPhotoMutation = useMutation({
     mutationFn: async (photoBlob: Blob) => {
@@ -55,17 +56,24 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     },
   });
 
+  // Initialize camera when component mounts
   useEffect(() => {
-    // Add a small delay to ensure the video element is properly mounted
-    const timer = setTimeout(() => {
-      startCamera();
-    }, 100);
+    const initializeCamera = async () => {
+      // Wait a bit for the component to fully render
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      if (!isInitialized) {
+        setIsInitialized(true);
+        startCamera();
+      }
+    };
+    
+    initializeCamera();
     
     return () => {
-      clearTimeout(timer);
       stopCamera();
     };
-  }, [facingMode]);
+  }, []);
 
   const startCamera = async () => {
     console.log('Starting camera initialization...');
@@ -82,16 +90,20 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       }
       
       console.log('Step 1: Checking video element...');
-      // Wait for video element to be available
+      
+      // Wait for video element to be available with retries
+      let videoElement = videoRef.current;
       let attempts = 0;
-      while (!videoRef.current && attempts < 10) {
-        console.log(`Waiting for video ref, attempt ${attempts + 1}`);
+      
+      while (!videoElement && attempts < 20) {
+        console.log(`Waiting for video element, attempt ${attempts + 1}`);
         await new Promise(resolve => setTimeout(resolve, 100));
+        videoElement = videoRef.current;
         attempts++;
       }
       
-      if (!videoRef.current) {
-        throw new Error('Video element not available');
+      if (!videoElement) {
+        throw new Error('Video element not available after waiting');
       }
       
       console.log('Step 2: Video element available, checking media devices...');
@@ -124,18 +136,19 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       console.log('Step 5: Camera stream obtained successfully:', mediaStream.getTracks().length, 'tracks');
       
       console.log('Step 6: Setting up video element...');
-      // Set up video element
-      const video = videoRef.current;
-      video.srcObject = mediaStream;
       
-      console.log('Step 7: Video source set, ready state:', video.readyState);
+      // Use the videoElement state which we know is not null
+      console.log('Video element exists, setting srcObject...');
+      videoElement.srcObject = mediaStream;
+      
+      console.log('Step 7: Video source set, ready state:', videoElement.readyState);
       
       // Set stream in state
       setStream(mediaStream);
       
       console.log('Step 8: Attempting to play video...');
       // Try to play the video without awaiting
-      video.play().catch((playError) => {
+      videoElement.play().catch((playError) => {
         console.warn('Video play failed, but continuing:', playError);
       });
       
@@ -269,6 +282,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
               onLoadedData={() => console.log('Video data loaded')}
               onPlay={() => console.log('Video started playing')}
               onError={(e) => console.error('Video error:', e)}
+              onLoadedMetadata={() => console.log('Video metadata loaded')}
             />
             <canvas ref={canvasRef} className="hidden" />
           </>
