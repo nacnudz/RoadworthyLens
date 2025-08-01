@@ -8,15 +8,7 @@ interface CustomProgressProps {
 
 const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
   ({ className, value = 0, ...props }, ref) => {
-    // Calculate color based on progress percentage
-    const getProgressColor = (percentage: number) => {
-      if (percentage === 0) return "bg-primary" // Blue at 0%
-      if (percentage === 100) return "bg-green-600" // Green at 100%
-      // Gradient between blue and green for intermediate values
-      const greenIntensity = percentage / 100
-      const blueIntensity = 1 - greenIntensity
-      return `bg-gradient-to-r from-primary to-green-600`
-    }
+    const percentage = Math.max(0, Math.min(100, value))
     
     return (
       <div
@@ -28,15 +20,14 @@ const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
         {...props}
       >
         <div
-          className={cn(
-            "h-full transition-all duration-300 ease-in-out",
-            value === 100 ? "bg-green-600" : value === 0 ? "bg-primary" : "bg-gradient-to-r from-primary to-green-600"
-          )}
+          className="h-full transition-all duration-300 ease-in-out"
           style={{ 
-            width: `${Math.max(0, Math.min(100, value))}%`,
-            background: value > 0 && value < 100 
-              ? `linear-gradient(to right, hsl(207, 90%, 54%), rgb(34, 197, 94) ${value}%)`
-              : undefined
+            width: `${percentage}%`,
+            background: percentage === 0 
+              ? 'hsl(207, 90%, 54%)' // Pure blue at 0%
+              : percentage === 100 
+                ? 'rgb(34, 197, 94)' // Pure green at 100%
+                : `linear-gradient(to right, hsl(207, 90%, 54%) ${100 - percentage}%, rgb(34, 197, 94) ${percentage}%)`
           }}
         />
       </div>
