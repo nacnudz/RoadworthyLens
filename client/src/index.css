@@ -23,8 +23,8 @@
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
-  --surface: hsl(210, 40%, 98%);
-  --on-surface: hsl(210, 40%, 13%);
+  --surface: #5E93B5;
+  --on-surface: hsl(0, 0%, 100%);
   --error: hsl(0, 65%, 51%);
 }
 
