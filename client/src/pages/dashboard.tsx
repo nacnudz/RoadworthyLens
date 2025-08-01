@@ -164,7 +164,6 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       const completed = Object.values(inspection.checklistItems || {}).filter(Boolean).length;
       const total = CHECKLIST_ITEMS.length;
       const percentage = Math.round((completed / total) * 100);
-      console.log('Progress fallback - settings not loaded:', { completed, total, percentage });
       return { completed, total, percentage };
     }
 
@@ -179,14 +178,6 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
     
     const totalRequired = requiredItems.length;
     const percentage = totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 100;
-    
-    console.log('Progress calculation:', { 
-      requiredItems, 
-      completedRequired, 
-      totalRequired, 
-      percentage,
-      settingsAvailable: !!settings?.checklistItemSettings 
-    });
     
     return { completed: completedRequired, total: totalRequired, percentage };
   };

@@ -202,11 +202,27 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const checklistSettings = (settings?.checklistItemSettings as Record<string, string>) || {};
 
   const getProgressInfo = () => {
-    const orderedItems = settings?.checklistItemOrder || CHECKLIST_ITEMS;
-    const completed = Object.values(checklistItems).filter(Boolean).length;
-    const total = orderedItems.length;
-    const percentage = Math.round((completed / total) * 100);
-    return { completed, total, percentage };
+    if (!settings?.checklistItemSettings) {
+      // Fallback to all items if settings not loaded
+      const completed = Object.values(checklistItems).filter(Boolean).length;
+      const total = CHECKLIST_ITEMS.length;
+      const percentage = Math.round((completed / total) * 100);
+      return { completed, total, percentage };
+    }
+
+    // Only count required items for progress calculation
+    const requiredItems = CHECKLIST_ITEMS.filter(item => 
+      settings.checklistItemSettings[item] === "required"
+    );
+    
+    const completedRequired = requiredItems.filter(item => 
+      checklistItems[item] === true
+    ).length;
+    
+    const totalRequired = requiredItems.length;
+    const percentage = totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 100;
+    
+    return { completed: completedRequired, total: totalRequired, percentage };
   };
 
   const { completed, total, percentage } = getProgressInfo();
