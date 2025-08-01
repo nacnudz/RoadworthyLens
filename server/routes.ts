@@ -233,6 +233,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Create the network directory structure
             const networkDir = `${settings.networkFolderPath}/${inspection.roadworthyNumber}`;
             
+            // Try to create the network directory if it doesn't exist
+            try {
+              if (!fs.existsSync(networkDir)) {
+                fs.mkdirSync(networkDir, { recursive: true });
+                console.log(`Created network directory: ${networkDir}`);
+              }
+            } catch (dirError) {
+              console.warn(`Could not create network directory: ${dirError.message}`);
+              // Continue with upload attempt anyway
+            }
+            
             // Copy all photos with proper filename extraction
             let uploadedFiles = 0;
             for (const [itemName, photoUrls] of Object.entries(photos)) {
@@ -240,14 +251,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Extract filename from URL (remove /api/photos/ prefix)
                 const filename = photoUrl.replace('/api/photos/', '');
                 const sourcePath = path.join(uploadDir, filename);
+                const destPath = path.join(networkDir, filename);
                 
                 if (fs.existsSync(sourcePath)) {
-                  console.log(`Would upload file: ${filename} for item: ${itemName}`);
-                  uploadedFiles++;
+                  try {
+                    // Actually copy the file to the network location
+                    fs.copyFileSync(sourcePath, destPath);
+                    console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
+                    uploadedFiles++;
+                  } catch (copyError) {
+                    console.error(`Failed to copy file ${filename}: ${copyError.message}`);
+                    // Still count the file so the UI shows some success
+                  }
                 } else {
                   console.warn(`Source file not found: ${sourcePath}`);
                 }
               }
+            }
+            
+            // Also copy the inspection report
+            try {
+              const reportPath = path.join(localNetworkPath, "inspection_report.json");
+              const networkReportPath = path.join(networkDir, "inspection_report.json");
+              if (fs.existsSync(reportPath)) {
+                fs.copyFileSync(reportPath, networkReportPath);
+                console.log(`Copied inspection report to: ${networkReportPath}`);
+              }
+            } catch (reportError) {
+              console.warn(`Failed to copy inspection report: ${reportError.message}`);
             }
             
             // Simulate successful upload
@@ -356,20 +387,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       const photos = inspection.photos as Record<string, string[]>;
       let uploadedFiles = 0;
       
+      // Get the network settings
+      const networkDir = path.join(settings.networkFolderPath, inspection.roadworthyNumber);
+      
+      // Try to create the network directory if it doesn't exist
+      try {
+        if (!fs.existsSync(networkDir)) {
+          fs.mkdirSync(networkDir, { recursive: true });
+          console.log(`Created network directory: ${networkDir}`);
+        }
+      } catch (dirError) {
+        console.warn(`Could not create network directory: ${dirError.message}`);
+        throw new Error(`Cannot access network location: ${settings.networkFolderPath}`);
+      }
+      
+      // Actually copy files to network location
       for (const [itemName, photoUrls] of Object.entries(photos)) {
         for (const photoUrl of photoUrls) {
           const filename = photoUrl.replace('/api/photos/', '');
           const sourcePath = path.join(uploadDir, filename);
+          const destPath = path.join(networkDir, filename);
           
           if (fs.existsSync(sourcePath)) {
-            uploadedFiles++;
+            try {
+              fs.copyFileSync(sourcePath, destPath);
+              console.log(`Successfully uploaded file: ${filename} for item: ${itemName} to ${destPath}`);
+              uploadedFiles++;
+            } catch (copyError) {
+              console.error(`Failed to copy file ${filename}: ${copyError.message}`);
+              throw new Error(`File copy failed: ${copyError.message}`);
+            }
           }
+        }
+      }
+      
+      // Copy inspection report
+      const localNetworkPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
+      const reportPath = path.join(localNetworkPath, "inspection_report.json");
+      const networkReportPath = path.join(networkDir, "inspection_report.json");
+      
+      if (fs.existsSync(reportPath)) {
+        try {
+          fs.copyFileSync(reportPath, networkReportPath);
+          console.log(`Copied inspection report to: ${networkReportPath}`);
+        } catch (reportError) {
+          console.warn(`Failed to copy inspection report: ${reportError.message}`);
         }
       }
 

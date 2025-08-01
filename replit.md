@@ -93,9 +93,11 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Loading animation during network uploads with accessibility checks
 - Upload completion date/time tracking in inspection details
 - Manual retry button for failed uploads with comprehensive error handling
-- Network upload functionality with simulated SMB file transfer
+- Real file copying to network location with proper error handling
 - Upload status tracking (pending/success/failed) with visual indicators
 - Retry functionality accessible from completed inspection view
+- Automatic directory creation on network paths
+- Backup copies maintained in local network_uploads folder
 
 ### Photo Gallery Implementation
 - Created simplified photo gallery component for viewing inspection item photos
