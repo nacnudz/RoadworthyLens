@@ -18,15 +18,34 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadDir,
-    filename: (req, file, cb) => {
-      const { itemName } = req.body;
-      const timestamp = Date.now();
-      const ext = path.extname(file.originalname) || '.jpg';
-      // Use item name as filename for easier identification
-      const sanitizedItemName = itemName ? itemName.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown_item';
-      const inspectionId = req.params?.id || 'unknown_id';
-      const filename = `${inspectionId}_${sanitizedItemName}_${timestamp}${ext}`;
-      cb(null, filename);
+    filename: async (req, file, cb) => {
+      try {
+        const { itemName } = req.body;
+        const inspectionId = req.params?.id;
+        const ext = path.extname(file.originalname) || '.jpg';
+        
+        if (!itemName || !inspectionId) {
+          return cb(new Error('Missing itemName or inspectionId'), '');
+        }
+
+        // Get current inspection to count existing photos for this item
+        const inspection = await storage.getInspection(inspectionId);
+        if (!inspection) {
+          return cb(new Error('Inspection not found'), '');
+        }
+
+        const photos = (inspection.photos as Record<string, string[]>) || {};
+        const existingPhotos = photos[itemName] || [];
+        const photoNumber = existingPhotos.length + 1;
+
+        // Create clean filename: ItemName + PhotoNumber + extension
+        const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '');
+        const filename = `${sanitizedItemName}${photoNumber}${ext}`;
+        
+        cb(null, filename);
+      } catch (error) {
+        cb(error as Error, '');
+      }
     }
   }),
   limits: {
