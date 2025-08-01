@@ -269,7 +269,7 @@ export default function Settings({ onCancel }: SettingsProps) {
   if (isLoading) {
     return (
       <div className="p-4">
-        <Card>
+        <Card className="card-shadow">
           <CardContent className="p-6">
             <div className="animate-pulse space-y-4">
               <div className="h-6 bg-gray-200 rounded w-1/3"></div>
@@ -295,7 +295,7 @@ export default function Settings({ onCancel }: SettingsProps) {
 
   return (
     <div className="p-4">
-      <Card>
+      <Card className="form-shadow">
         <CardContent className="p-6">
           <h2 className="text-xl font-medium mb-6 text-on-surface">Application Settings</h2>
           

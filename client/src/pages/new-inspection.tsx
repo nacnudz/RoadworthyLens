@@ -81,7 +81,7 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
 
   return (
     <div className="p-4">
-      <Card>
+      <Card className="form-shadow">
         <CardContent className="p-6">
           <h2 className="text-xl font-medium mb-6 text-on-surface">New Inspection</h2>
           

@@ -51,7 +51,7 @@ export default function PhotoGallery({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black flex flex-col">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black flex flex-col dialog-shadow">
         <DialogHeader className="p-4 bg-black/80 text-white">
           <div className="flex items-center justify-between">
             <div>

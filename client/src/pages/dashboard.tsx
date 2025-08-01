@@ -265,7 +265,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
 
         {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <Card>
+        <Card className="card-shadow">
           <CardContent className="p-4">
             <div className="text-sm text-gray-600">In Progress</div>
             <div className="text-2xl font-medium text-accent">
@@ -273,7 +273,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="card-shadow">
           <CardContent className="p-4">
             <div className="text-sm text-gray-600">Completed Today</div>
             <div className="text-2xl font-medium text-secondary">
@@ -292,7 +292,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             <InspectionCardSkeleton />
           </>
         ) : inProgressInspections.length === 0 ? (
-          <Card>
+          <Card className="card-shadow">
             <CardContent className="p-6 text-center text-gray-500">
               No inspections in progress
             </CardContent>
@@ -302,7 +302,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             {inProgressInspections.map((inspection) => {
               const { completed, total, percentage } = getProgressInfo(inspection);
               return (
-                <Card key={inspection.id}>
+                <Card key={inspection.id} className="card-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -350,7 +350,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             <InspectionCardSkeleton />
           </>
         ) : nonUploadedCompletedInspections.length === 0 ? (
-          <Card>
+          <Card className="card-shadow">
             <CardContent className="p-6 text-center text-gray-500">
               No completed inspections pending upload
             </CardContent>
@@ -358,7 +358,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
         ) : (
           <div className="space-y-3">
             {nonUploadedCompletedInspections.slice(0, 5).map((inspection) => (
-              <Card key={inspection.id}>
+              <Card key={inspection.id} className="card-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -442,7 +442,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             <InspectionCardSkeleton />
           </>
         ) : uploadedInspections.length === 0 ? (
-          <Card>
+          <Card className="card-shadow">
             <CardContent className="p-6 text-center text-gray-500">
               No inspections uploaded to VicRoads yet
             </CardContent>
@@ -450,7 +450,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
         ) : (
           <div className="space-y-3">
             {uploadedInspections.slice(0, 5).map((inspection) => (
-              <Card key={inspection.id}>
+              <Card key={inspection.id} className="card-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -499,7 +499,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       </div>
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="dialog-shadow">
           <DialogHeader>
             <DialogTitle>Delete Inspection</DialogTitle>
           </DialogHeader>

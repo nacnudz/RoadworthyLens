@@ -181,7 +181,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   if (!currentInspection || !currentInspection.id) {
     return (
       <div className="p-4">
-        <Card>
+        <Card className="card-shadow">
           <CardContent className="p-6 text-center">
             <p className="text-gray-500">No inspection found. Please select an inspection from the dashboard.</p>
             <Button 
@@ -303,7 +303,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       </div>
 
       {/* Inspection Header */}
-      <Card className="mb-4">
+      <Card className="mb-4 card-shadow">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -384,7 +384,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           const { isRequired, isCompleted, photoCount, statusText, statusColor } = getItemStatus(item);
           
           return (
-            <Card key={item}>
+            <Card key={item} className="card-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
@@ -459,7 +459,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Action Buttons */}
       <div className="mt-6 space-y-3">
         {isViewOnly ? (
-          <Card>
+          <Card className="card-shadow">
             <CardContent className="p-4">
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg transition-all duration-200"
@@ -472,7 +472,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="card-shadow">
               <CardContent className="p-4">
                 <Button 
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg transition-all duration-200"
@@ -497,7 +497,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="card-shadow">
               <CardContent className="p-4">
                 <Button 
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg transition-all duration-200"
@@ -527,7 +527,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Completion Dialog */}
       <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-        <DialogContent>
+        <DialogContent className="dialog-shadow">
           <DialogHeader>
             <DialogTitle>Complete Inspection</DialogTitle>
           </DialogHeader>
