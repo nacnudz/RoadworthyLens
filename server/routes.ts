@@ -22,7 +22,9 @@ const upload = multer({
       const { itemName } = req.body;
       const timestamp = Date.now();
       const ext = path.extname(file.originalname) || '.jpg';
-      const filename = `${req.params.id}_${itemName}_${timestamp}${ext}`;
+      // Use item name as filename for easier identification
+      const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `${req.params.id}_${sanitizedItemName}_${timestamp}${ext}`;
       cb(null, filename);
     }
   }),
@@ -272,6 +274,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
+      // Get inspection before deleting to clean up photos
+      const inspection = await storage.getInspection(id);
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+
+      // Clean up associated photo files from uploads folder only
+      const photos = (inspection.photos as Record<string, string[]>) || {};
+      for (const [itemName, photoUrls] of Object.entries(photos)) {
+        for (const photoUrl of photoUrls) {
+          // Extract filename from URL (remove /api/photos/ prefix)
+          const filename = photoUrl.replace('/api/photos/', '');
+          const filePath = path.join(uploadDir, filename);
+          
+          // Only delete from uploads folder, preserve Completed folder
+          if (fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(filePath);
+              console.log(`Deleted photo file: ${filename} from uploads`);
+            } catch (deleteError) {
+              console.warn(`Failed to delete photo file: ${filename}`, deleteError);
+            }
+          }
+        }
+      }
+      
       const success = await storage.deleteInspection(id);
       if (!success) {
         return res.status(404).json({ message: "Inspection not found" });
@@ -303,6 +331,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (photoIndexNum >= itemPhotos.length) {
         return res.status(404).json({ error: "Photo not found" });
+      }
+
+      // Get the photo URL to delete the file
+      const photoToDelete = itemPhotos[photoIndexNum];
+      
+      // Delete the physical file from uploads folder only
+      if (photoToDelete) {
+        const filename = photoToDelete.replace('/api/photos/', '');
+        const filePath = path.join(uploadDir, filename);
+        
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+            console.log(`Deleted photo file: ${filename} from uploads`);
+          } catch (deleteError) {
+            console.warn(`Failed to delete photo file: ${filename}`, deleteError);
+          }
+        }
       }
 
       // Remove the photo from the array

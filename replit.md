@@ -101,6 +101,12 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - No network dependencies - works offline
 - Simplified completion flow with auto-dismissing success notifications
 
+### Photo Management & Cleanup
+- Photo filenames use descriptive naming based on checklist item names
+- When deleting photos or inspections, associated files are removed from uploads folder
+- Completed folder files are preserved for permanent backup
+- Automatic file cleanup prevents storage bloat while maintaining inspection records
+
 ### Photo Gallery Implementation
 - Created simplified photo gallery component for viewing inspection item photos
 - Full-screen modal with clean interface focused on photo viewing
