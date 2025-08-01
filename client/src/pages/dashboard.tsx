@@ -67,15 +67,17 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/completed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/uploaded"] });
       toast({
         title: "Success",
-        description: "Inspection marked as uploaded to VicRoads",
+        description: "Inspection uploaded to VicRoads successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to mark as uploaded to VicRoads",
+        description: error.message || "Failed to upload to VicRoads",
         variant: "destructive",
       });
     },
@@ -390,7 +392,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                           Uploading...
                         </>
                       ) : (
-                        "Uploaded to VicRoads"
+                        "Upload to VicRoads"
                       )}
                     </Button>
                     {inspection.status === "fail" && (
