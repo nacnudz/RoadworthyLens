@@ -10,7 +10,7 @@
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(20, 14.3%, 4.1%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(0, 0%, 15%);
+  --card-foreground: hsl(0, 0%, 10%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
   --primary: hsl(205, 35%, 54%);
@@ -101,6 +101,43 @@
   
   .card-text {
     color: hsl(0, 0%, 15%) !important;
+  }
+  
+  /* Force dark text in cards - using actual component class names */
+  [data-component="card"] h1, [data-component="card"] h2, [data-component="card"] h3, 
+  [data-component="card"] h4, [data-component="card"] h5, [data-component="card"] h6,
+  [data-component="card"] .font-medium, [data-component="card"] .text-lg, [data-component="card"] .text-xl {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  [data-component="card"] p, [data-component="card"] div, [data-component="card"] span {
+    color: hsl(0, 0%, 20%) !important;
+  }
+  
+  /* Target shadcn card components specifically */
+  .bg-card h1, .bg-card h2, .bg-card h3, .bg-card h4, .bg-card h5, .bg-card h6,
+  .bg-card .font-medium, .bg-card .text-lg, .bg-card .text-xl {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  .bg-card .text-on-surface {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  /* Force text-card-foreground to use dark color */
+  .text-card-foreground {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  /* Override any white text in cards */
+  .bg-card * {
+    color: hsl(0, 0%, 15%) !important;
+  }
+  
+  /* But preserve button and badge colors */
+  .bg-card .bg-primary, .bg-card .bg-green-600, .bg-card .bg-red-600, 
+  .bg-card .bg-gray-600, .bg-card .bg-secondary, .bg-card .bg-destructive {
+    color: white !important;
   }
   
   /* Drop shadows for forms and cards */
