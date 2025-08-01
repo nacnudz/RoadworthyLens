@@ -38,10 +38,10 @@ const upload = multer({
         const existingPhotos = photos[itemName] || [];
         const photoNumber = existingPhotos.length + 1;
 
-        // Create clean filename: RoadworthyNumber_ItemName + PhotoNumber + extension
+        // Create clean filename: RoadworthyNumber_ItemName_PhotoNumber + extension
         const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '');
         const sanitizedRoadworthyNumber = inspection.roadworthyNumber.replace(/[^a-zA-Z0-9]/g, '');
-        const filename = `${sanitizedRoadworthyNumber}_${sanitizedItemName}${photoNumber}${ext}`;
+        const filename = `${sanitizedRoadworthyNumber}_${sanitizedItemName}_${photoNumber}${ext}`;
         
         cb(null, filename);
       } catch (error) {
