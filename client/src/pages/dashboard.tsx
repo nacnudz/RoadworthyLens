@@ -385,23 +385,25 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                     >
                       View Report
                     </Button>
-                    <Button 
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover:scale-105"
-                      onClick={() => uploadToVicRoadsMutation.mutate(inspection.id)}
-                      disabled={uploadToVicRoadsMutation.isPending}
-                    >
-                      {uploadToVicRoadsMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        "Uploaded to VicRoads"
-                      )}
-                    </Button>
+                    {inspection.status !== "fail" && (
+                      <Button 
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover:scale-105"
+                        onClick={() => uploadToVicRoadsMutation.mutate(inspection.id)}
+                        disabled={uploadToVicRoadsMutation.isPending}
+                      >
+                        {uploadToVicRoadsMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          "Uploaded to VicRoads"
+                        )}
+                      </Button>
+                    )}
                     {inspection.status === "fail" && (
                       <Button 
-                        className="flex-1 bg-primary hover:bg-primary-dark transition-all duration-200 hover:scale-105"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover:scale-105"
                         onClick={() => handleRetest(inspection.id, inspection.roadworthyNumber)}
                         disabled={createRetestMutation.isPending}
                       >
@@ -520,9 +522,8 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             </div>
             <div className="flex space-x-3 pt-4">
               <Button 
-                variant="secondary" 
                 onClick={() => setDeleteDialogOpen(false)}
-                className="flex-1"
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
                 disabled={deleteInspectionMutation.isPending}
               >
                 Cancel
