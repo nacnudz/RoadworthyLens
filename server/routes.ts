@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import multer from "multer";
@@ -17,9 +18,10 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: uploadDir,
     filename: (req, file, cb) => {
-      const { inspectionId, itemName, photoIndex } = req.body;
-      const ext = path.extname(file.originalname);
-      const filename = `${itemName}_${photoIndex}${ext}`;
+      const { itemName } = req.body;
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname) || '.jpg';
+      const filename = `${req.params.id}_${itemName}_${timestamp}${ext}`;
       cb(null, filename);
     }
   }),
@@ -29,6 +31,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Serve uploaded photos statically
+  app.use('/api/photos', express.static(uploadDir));
   
   // Get all inspections
   app.get("/api/inspections", async (req, res) => {
@@ -127,12 +132,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Inspection not found" });
       }
 
-      // Update photos record
+      // Update photos record with full URLs
       const photos = inspection.photos as Record<string, string[]> || {};
       if (!photos[itemName]) {
         photos[itemName] = [];
       }
-      photos[itemName].push(req.file.filename);
+      // Store the full URL path for frontend consumption
+      photos[itemName].push(`/api/photos/${req.file.filename}`);
 
       // Update checklist item as completed
       const checklistItems = inspection.checklistItems as Record<string, boolean> || {};
