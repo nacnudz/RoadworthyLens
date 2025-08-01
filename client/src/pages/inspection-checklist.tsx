@@ -349,19 +349,28 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Test Heading */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-on-surface bg-gray-50 px-4 py-2 rounded-lg border">
-          {currentInspection.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection.testNumber - 1}`}
-        </h3>
-        {currentInspection.createdAt && (
-          <p className="text-sm text-gray-500 mt-2">
-            Created: {new Date(currentInspection.createdAt).toLocaleDateString()} {new Date(currentInspection.createdAt).toLocaleTimeString()}
-          </p>
-        )}
-        {currentInspection.completedAt && (
-          <p className="text-sm text-gray-500">
-            Completed: {new Date(currentInspection.completedAt).toLocaleDateString()} {new Date(currentInspection.completedAt).toLocaleTimeString()}
-          </p>
-        )}
+        <div className="bg-gray-50 px-4 py-3 rounded-lg border">
+          <h3 className="text-lg font-semibold text-on-surface mb-2">
+            {currentInspection.testNumber === 1 ? "Initial Inspection" : `Re-Test ${currentInspection.testNumber - 1}`}
+          </h3>
+          <div className="space-y-1">
+            {currentInspection.createdAt && (
+              <p className="text-sm text-gray-600">
+                Created: {new Date(currentInspection.createdAt).toLocaleDateString()} {new Date(currentInspection.createdAt).toLocaleTimeString()}
+              </p>
+            )}
+            {currentInspection.completedAt && (
+              <p className="text-sm text-gray-600">
+                Completed: {new Date(currentInspection.completedAt).toLocaleDateString()} {new Date(currentInspection.completedAt).toLocaleTimeString()}
+              </p>
+            )}
+            {currentInspection.uploadedToVicRoadsAt && (
+              <p className="text-sm text-gray-600">
+                Uploaded to VicRoads: {new Date(currentInspection.uploadedToVicRoadsAt).toLocaleDateString()} {new Date(currentInspection.uploadedToVicRoadsAt).toLocaleTimeString()}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Checklist Items */}
