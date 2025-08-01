@@ -23,8 +23,9 @@ const upload = multer({
       const timestamp = Date.now();
       const ext = path.extname(file.originalname) || '.jpg';
       // Use item name as filename for easier identification
-      const sanitizedItemName = itemName.replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `${req.params.id}_${sanitizedItemName}_${timestamp}${ext}`;
+      const sanitizedItemName = itemName ? itemName.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown_item';
+      const inspectionId = req.params?.id || 'unknown_id';
+      const filename = `${inspectionId}_${sanitizedItemName}_${timestamp}${ext}`;
       cb(null, filename);
     }
   }),
@@ -197,9 +198,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Copy all photos to local backup folder
       const photos = inspection.photos as Record<string, string[]>;
       for (const [itemName, photoFiles] of Object.entries(photos)) {
-        for (const photoFile of photoFiles) {
-          const sourcePath = path.join(uploadDir, photoFile);
-          const destPath = path.join(localBackupPath, photoFile);
+        for (const photoUrl of photoFiles) {
+          // Extract filename from URL (remove /api/photos/ prefix)
+          const filename = photoUrl.replace('/api/photos/', '');
+          const sourcePath = path.join(uploadDir, filename);
+          const destPath = path.join(localBackupPath, filename);
           if (fs.existsSync(sourcePath)) {
             fs.copyFileSync(sourcePath, destPath);
           }
