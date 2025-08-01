@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2, Upload, RefreshCw } from "lucide-react";
+import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2, Upload, RefreshCw, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
@@ -118,10 +118,11 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       queryClient.invalidateQueries({ queryKey: ["/api/inspections/completed"] });
       toast({
         title: "Success",
-        description: "Inspection completed and uploaded to network folder",
+        description: "Inspection completed successfully",
       });
       setShowCompletionDialog(false);
-      onClose();
+      // Show upload dialog after completion
+      setShowUploadDialog(true);
     },
     onError: (error: any) => {
       toast({
@@ -409,6 +410,57 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         })}
       </div>
 
+      {/* Upload Status and Retry for Completed Inspections */}
+      {isViewOnly && currentInspection.completedAt && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Network Upload Status:</span>
+                <div className="flex items-center space-x-2">
+                  {currentInspection.uploadStatus === 'success' && (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm text-green-600">Uploaded</span>
+                    </>
+                  )}
+                  {currentInspection.uploadStatus === 'failed' && (
+                    <>
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-sm text-red-600">Failed</span>
+                    </>
+                  )}
+                  {(!currentInspection.uploadStatus || currentInspection.uploadStatus === 'pending') && (
+                    <>
+                      <Loader2 className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm text-orange-600">Pending</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {currentInspection.uploadedAt && (
+                <div className="text-xs text-gray-500">
+                  Uploaded: {new Date(currentInspection.uploadedAt).toLocaleDateString()} at {new Date(currentInspection.uploadedAt).toLocaleTimeString()}
+                </div>
+              )}
+              
+              {(currentInspection.uploadStatus === 'failed' || !currentInspection.uploadStatus || currentInspection.uploadStatus === 'pending') && (
+                <Button
+                  onClick={() => setShowUploadDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry Upload
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       <div className="mt-6 space-y-3">
         {isViewOnly ? (
@@ -547,6 +599,19 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         }}
         onDeletePhoto={!isViewOnly && !currentInspection.completedAt ? handleDeletePhoto : undefined}
         isReadOnly={isViewOnly || !!currentInspection.completedAt}
+      />
+
+      {/* Upload Loading Dialog */}
+      <UploadLoadingDialog
+        isOpen={showUploadDialog}
+        onClose={() => {
+          setShowUploadDialog(false);
+          onClose();
+        }}
+        inspectionId={currentInspection.id}
+        onUploadComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+        }}
       />
     </div>
   );
