@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -28,7 +28,7 @@ export const CHECKLIST_ITEMS = [
 
 export type ChecklistItem = typeof CHECKLIST_ITEMS[number];
 
-export const inspections = sqliteTable("inspections", {
+export const inspections = pgTable("inspections", {
   id: text("id").primaryKey(),
   roadworthyNumber: text("roadworthy_number").notNull(),
   clientName: text("client_name").default(""),
@@ -39,16 +39,14 @@ export const inspections = sqliteTable("inspections", {
   testNumber: integer("test_number").notNull().default(1), // 1 for initial test, 2+ for retests
   completedAt: text("completed_at"),
   uploadedToVicRoadsAt: text("uploaded_to_vicroads_at"),
-
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
 
-export const settings = sqliteTable("settings", {
+export const settings = pgTable("settings", {
   id: text("id").primaryKey(),
   checklistItemSettings: text("checklist_item_settings", { mode: "json" }).notNull().default("{}"),
   checklistItemOrder: text("checklist_item_order", { mode: "json" }),
-
   logoUrl: text("logo_url"),
   updatedAt: text("updated_at").notNull(),
 });

@@ -6,7 +6,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import bcrypt from "bcryptjs";
-import { storage } from "./sqlite-storage";
+import { storage } from "./pg-storage";
 import { insertInspectionSchema, insertSettingsSchema, CHECKLIST_ITEMS } from "@shared/schema";
 
 // Configure multer for photo uploads
