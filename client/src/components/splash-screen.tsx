@@ -67,7 +67,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
         {/* App title */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
-            Road Worthy Lens
+            Roadworthy Lens
           </h1>
           <p className="text-lg md:text-xl text-white/80 font-medium">
             Vehicle Inspection Management

@@ -126,7 +126,7 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Improved perceived performance through progressive loading indicators
 
 ### UI/UX Improvements
-- Updated header design: logo positioned on left, "Road Worthy Lens" as centered main heading with "Vehicle Inspection Management" as subtitle
+- Updated header design: logo positioned on left, "Roadworthy Lens" as centered main heading with "Vehicle Inspection Management" as subtitle
 - Removed settings button from header for cleaner interface
 - Enhanced completion dialog with color-coded buttons (green/red/dark grey)
 - Improved camera functionality with better error handling and permissions

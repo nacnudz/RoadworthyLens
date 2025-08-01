@@ -9,7 +9,7 @@ export default function Header({}: HeaderProps) {
         <div className="flex items-center justify-center">
           <img 
             src={logoImage} 
-            alt="Road Worthy Lens" 
+            alt="Roadworthy Lens" 
             className="h-20 w-auto object-contain"
           />
         </div>
