@@ -1,0 +1,46 @@
+{
+  "inspectionId": "b15eef0e-dfcb-4467-8d5e-a6d1e29534cb",
+  "roadworthyNumber": "123456789",
+  "clientName": "Chris",
+  "vehicleDescription": "Blue LDV",
+  "status": "pass",
+  "completedAt": "2025-08-01T15:27:02.717Z",
+  "checklistItems": {
+    "VIN": true,
+    "Under Vehicle": true,
+    "Vehicle on Hoist": true,
+    "Engine Bay": true,
+    "Compliance Plate": false,
+    "Front of Vehicle": false,
+    "Rear of Vehicle": false,
+    "Head Light Aimer": false,
+    "Dashboard Warning Lights": true,
+    "Odometer Before Road Test": false,
+    "Odometer After Road Test": false,
+    "Brake Test Print": false,
+    "Engine Number": false,
+    "Modification Plate": false,
+    "LPG Tank Plate": false,
+    "Tint Read Out": false,
+    "Noteworthy": false,
+    "Fault": false,
+    "Other": false
+  },
+  "photos": {
+    "Vehicle on Hoist": [
+      "/api/photos/b15eef0e-dfcb-4467-8d5e-a6d1e29534cb_undefined_1754061936713.jpg"
+    ],
+    "Dashboard Warning Lights": [
+      "/api/photos/b15eef0e-dfcb-4467-8d5e-a6d1e29534cb_undefined_1754061952200.jpg"
+    ],
+    "Engine Bay": [
+      "/api/photos/b15eef0e-dfcb-4467-8d5e-a6d1e29534cb_undefined_1754061971852.jpg"
+    ],
+    "Under Vehicle": [
+      "/api/photos/b15eef0e-dfcb-4467-8d5e-a6d1e29534cb_undefined_1754062005213.jpg"
+    ],
+    "VIN": [
+      "/api/photos/b15eef0e-dfcb-4467-8d5e-a6d1e29534cb_undefined_1754062015855.jpg"
+    ]
+  }
+}

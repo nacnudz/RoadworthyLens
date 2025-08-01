@@ -316,7 +316,19 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Checklist Items */}
       <div className="space-y-3">
         {(settings?.checklistItemOrder || CHECKLIST_ITEMS)
-          .filter(item => checklistSettings[item] !== "hidden")
+          .filter(item => {
+            // Always filter out hidden items
+            if (checklistSettings[item] === "hidden") return false;
+            
+            // For completed inspections, only show items that have photos
+            if (isViewOnly || currentInspection.status === "completed") {
+              const photoCount = photos[item]?.length || 0;
+              return photoCount > 0;
+            }
+            
+            // For in-progress inspections, show all non-hidden items
+            return true;
+          })
           .map((item) => {
           const { isRequired, isCompleted, photoCount, statusText, statusColor } = getItemStatus(item);
           

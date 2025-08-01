@@ -1,0 +1,47 @@
+{
+  "inspectionId": "65f13c92-11b7-44e9-9470-84fed33fd91d",
+  "roadworthyNumber": "12435623",
+  "clientName": "",
+  "vehicleDescription": "",
+  "status": "pass",
+  "completedAt": "2025-08-01T15:28:48.661Z",
+  "checklistItems": {
+    "VIN": true,
+    "Under Vehicle": true,
+    "Vehicle on Hoist": true,
+    "Engine Bay": true,
+    "Compliance Plate": false,
+    "Front of Vehicle": false,
+    "Rear of Vehicle": false,
+    "Head Light Aimer": false,
+    "Dashboard Warning Lights": true,
+    "Odometer Before Road Test": false,
+    "Odometer After Road Test": false,
+    "Brake Test Print": false,
+    "Engine Number": false,
+    "Modification Plate": false,
+    "LPG Tank Plate": false,
+    "Tint Read Out": false,
+    "Noteworthy": false,
+    "Fault": false,
+    "Other": false
+  },
+  "photos": {
+    "Vehicle on Hoist": [
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062091218.jpg"
+    ],
+    "Dashboard Warning Lights": [
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062094644.jpg",
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062097346.jpg"
+    ],
+    "Engine Bay": [
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062105984.jpg"
+    ],
+    "Under Vehicle": [
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062116553.jpg"
+    ],
+    "VIN": [
+      "/api/photos/65f13c92-11b7-44e9-9470-84fed33fd91d_undefined_1754062119915.jpg"
+    ]
+  }
+}

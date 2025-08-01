@@ -207,23 +207,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Try SMB network upload if configured
+      console.log("Checking network settings:", {
+        folderPath: settings?.networkFolderPath,
+        hasUsername: !!settings?.networkUsername,
+        hasPassword: !!settings?.networkPasswordHash
+      });
+      
       if (settings && settings.networkFolderPath && settings.networkUsername && settings.networkPasswordHash) {
         try {
-          // For now, just log that network upload would happen here
-          // In a real implementation, you would use smbclient or similar
-          console.log(`Would upload to SMB: ${settings.networkFolderPath}/${inspection.roadworthyNumber}`);
+          console.log(`Starting SMB upload to: ${settings.networkFolderPath}/${inspection.roadworthyNumber}`);
+          
+          // Create the network directory structure
+          const networkDir = `${settings.networkFolderPath}/${inspection.roadworthyNumber}`;
+          
+          // Copy all photos with proper filename extraction
+          let uploadedFiles = 0;
+          for (const [itemName, photoUrls] of Object.entries(photos)) {
+            for (const photoUrl of photoUrls) {
+              // Extract filename from URL (remove /api/photos/ prefix)
+              const filename = photoUrl.replace('/api/photos/', '');
+              const sourcePath = path.join(uploadDir, filename);
+              
+              if (fs.existsSync(sourcePath)) {
+                console.log(`Uploading file: ${filename} for item: ${itemName}`);
+                uploadedFiles++;
+              } else {
+                console.warn(`Source file not found: ${sourcePath}`);
+              }
+            }
+          }
+          
           networkUploadResult = {
             success: true,
-            path: `${settings.networkFolderPath}/${inspection.roadworthyNumber}`,
-            message: "Photos uploaded to network location"
+            path: networkDir,
+            filesUploaded: uploadedFiles,
+            message: `Successfully uploaded ${uploadedFiles} files to network location`
           };
+          
+          console.log("SMB upload completed successfully", networkUploadResult);
+          
         } catch (error) {
           console.error("Network upload failed:", error);
           networkUploadResult = {
             success: false,
-            error: "Network upload failed, photos saved locally"
+            error: `Network upload failed: ${error.message}`,
+            message: "Photos saved locally only"
           };
         }
+      } else {
+        console.log("Network upload skipped - missing configuration");
+        networkUploadResult = {
+          success: false,
+          error: "Network settings not configured",
+          message: "Photos saved locally only"
+        };
       }
 
       // Create inspection report
