@@ -141,6 +141,16 @@
     color: white !important;
   }
   
+  /* Make sure icons in dark buttons are white */
+  .bg-primary svg, .bg-green-600 svg, .bg-red-600 svg, 
+  .bg-gray-600 svg, .bg-gray-700 svg, .bg-destructive svg,
+  .bg-card .bg-primary svg, .bg-card .bg-green-600 svg, .bg-card .bg-red-600 svg,
+  .bg-card .bg-gray-600 svg, .bg-card .bg-gray-700 svg, .bg-card .bg-destructive svg {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+  }
+  
   /* Fix text in gray background sections like Initial Inspection heading */
   .bg-gray-50 .text-on-surface,
   .bg-gray-50 h1, .bg-gray-50 h2, .bg-gray-50 h3, .bg-gray-50 h4, .bg-gray-50 h5, .bg-gray-50 h6,
