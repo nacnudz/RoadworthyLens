@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { IStorage } from "./storage";
 
-export class PgStorage implements IStorage {
+export class SqliteStorage implements IStorage {
   constructor() {
     this.initializeData();
   }
@@ -21,8 +21,8 @@ export class PgStorage implements IStorage {
 
       await db.insert(settings).values({
         id: randomUUID(),
-        checklistItemSettings: JSON.stringify(defaultChecklistSettings),
-        checklistItemOrder: JSON.stringify([...CHECKLIST_ITEMS].sort()),
+        checklistItemSettings: defaultChecklistSettings,
+        checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
         updatedAt: new Date().toISOString(),
       });
     }
@@ -70,8 +70,8 @@ export class PgStorage implements IStorage {
       clientName: insertInspection.clientName || "",
       vehicleDescription: insertInspection.vehicleDescription || "",
       status: insertInspection.status || "in-progress",
-      checklistItems: JSON.stringify(checklistItems),
-      photos: JSON.stringify({}),
+      checklistItems,
+      photos: {},
       testNumber: 1,
       completedAt: null,
       uploadedToVicRoadsAt: null,
@@ -94,14 +94,8 @@ export class PgStorage implements IStorage {
   }
 
   async deleteInspection(id: string): Promise<boolean> {
-    try {
-      await db.delete(inspections).where(eq(inspections.id, id));
-      // Check if the inspection still exists
-      const stillExists = await this.getInspection(id);
-      return !stillExists;
-    } catch (error) {
-      return false;
-    }
+    const result = await db.delete(inspections).where(eq(inspections.id, id));
+    return result.changes > 0;
   }
 
   async getSettings(): Promise<Settings> {
@@ -120,4 +114,4 @@ export class PgStorage implements IStorage {
   }
 }
 
-export const storage = new PgStorage();
+export const storage = new SqliteStorage();
