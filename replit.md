@@ -132,6 +132,9 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Improved camera functionality with better error handling and permissions
 - Alphabetically sorted checklist with required items prioritized
 - Removed optional/required labels from completed inspections for cleaner view
+- Progress bars now calculate based only on required items from settings (not all 19 items)
+- Progress bars hidden for completed and uploaded inspections to reduce visual clutter
+- Button text changed from "Upload to VicRoads" to "Uploaded to VicRoads" for clarity
 
 ## External Dependencies
 

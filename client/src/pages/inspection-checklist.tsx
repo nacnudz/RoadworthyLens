@@ -322,16 +322,19 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
             )}
           </div>
           
-          <div className="mt-3">
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
-              <span>Progress</span>
-              <span>{percentage}%</span>
+          {/* Only show progress bar for in-progress inspections */}
+          {currentInspection.status === "in-progress" && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Progress</span>
+                <span>{percentage}%</span>
+              </div>
+              <Progress value={percentage} className="h-2" />
+              <div className="text-xs text-gray-500 mt-1">
+                {completed} of {total} items completed
+              </div>
             </div>
-            <Progress value={percentage} className="h-2" />
-            <div className="text-xs text-gray-500 mt-1">
-              {completed} of {total} items completed
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
