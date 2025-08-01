@@ -1,0 +1,37 @@
+{
+  "roadworthyNumber": "35468",
+  "clientName": "",
+  "vehicleDescription": "",
+  "status": "pass",
+  "completedAt": "2025-08-01T17:03:05.943Z",
+  "checklistItems": {
+    "VIN": false,
+    "Under Vehicle": false,
+    "Vehicle on Hoist": true,
+    "Engine Bay": false,
+    "Compliance Plate": false,
+    "Front of Vehicle": false,
+    "Rear of Vehicle": false,
+    "Head Light Aimer": false,
+    "Dashboard Warning Lights": false,
+    "Odometer Before Road Test": false,
+    "Odometer After Road Test": false,
+    "Brake Test Print": false,
+    "Engine Number": true,
+    "Modification Plate": false,
+    "LPG Tank Plate": false,
+    "Tint Read Out": false,
+    "Noteworthy": false,
+    "Fault": false,
+    "Other": false
+  },
+  "photos": {
+    "Vehicle on Hoist": [
+      "/api/photos/35468_VehicleonHoist_1.jpg"
+    ],
+    "Engine Number": [
+      "/api/photos/35468_EngineNumber_1.jpg"
+    ]
+  },
+  "testNumber": 1
+}

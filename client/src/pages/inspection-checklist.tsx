@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2, Upload, RefreshCw, XCircle } from "lucide-react";
+import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2, Upload, RefreshCw, XCircle, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
@@ -24,7 +24,7 @@ interface Inspection {
   checklistItems: Record<string, boolean>;
   photos: Record<string, string[]>;
   completedAt?: string;
-
+  uploadedToVicRoadsAt?: string;
   createdAt: string;
   testNumber: number;
 }
@@ -290,9 +290,21 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       {/* Inspection Header */}
       <Card className="mb-4">
         <CardContent className="p-4">
-          <h2 className="text-lg font-medium text-on-surface">{currentInspection.roadworthyNumber}</h2>
-          <p className="text-sm text-gray-600">{currentInspection.clientName || "No client name"}</p>
-          <p className="text-xs text-gray-500">{currentInspection.vehicleDescription || "No vehicle description"}</p>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h2 className="text-lg font-medium text-on-surface">{currentInspection.roadworthyNumber}</h2>
+              <p className="text-sm text-gray-600">{currentInspection.clientName || "No client name"}</p>
+              <p className="text-xs text-gray-500">{currentInspection.vehicleDescription || "No vehicle description"}</p>
+            </div>
+            {currentInspection.uploadedToVicRoadsAt && (
+              <div className="flex flex-col items-center ml-4">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check className="w-5 h-5 text-green-600" />
+                </div>
+                <span className="text-xs text-green-600 mt-1">Uploaded</span>
+              </div>
+            )}
+          </div>
           
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-600 mb-1">

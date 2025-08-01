@@ -24,6 +24,7 @@ interface Inspection {
   checklistItems: Record<string, boolean>;
   photos: Record<string, string[]>;
   completedAt?: string;
+  uploadedToVicRoadsAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,35 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
 
   const { data: completedInspections = [], isLoading: loadingCompleted } = useQuery<Inspection[]>({
     queryKey: ["/api/inspections/completed"],
+  });
+
+  const { data: uploadedInspections = [], isLoading: loadingUploaded } = useQuery<Inspection[]>({
+    queryKey: ["/api/inspections/uploaded"],
+  });
+
+  const { data: settings } = useQuery<{ checklistItemSettings: Record<string, string> }>({
+    queryKey: ["/api/settings"],
+  });
+
+  const uploadToVicRoadsMutation = useMutation({
+    mutationFn: async (inspectionId: string) => {
+      const response = await apiRequest("POST", `/api/inspections/${inspectionId}/upload-to-vicroads`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
+      toast({
+        title: "Success",
+        description: "Inspection marked as uploaded to VicRoads",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to mark as uploaded to VicRoads",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteInspectionMutation = useMutation({
@@ -127,10 +157,27 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
   );
 
   const getProgressInfo = (inspection: Inspection) => {
-    const completed = Object.values(inspection.checklistItems || {}).filter(Boolean).length;
-    const total = CHECKLIST_ITEMS.length;
-    const percentage = Math.round((completed / total) * 100);
-    return { completed, total, percentage };
+    if (!settings?.checklistItemSettings) {
+      // Fallback to all items if settings not loaded
+      const completed = Object.values(inspection.checklistItems || {}).filter(Boolean).length;
+      const total = CHECKLIST_ITEMS.length;
+      const percentage = Math.round((completed / total) * 100);
+      return { completed, total, percentage };
+    }
+
+    // Only count required items for progress calculation
+    const requiredItems = CHECKLIST_ITEMS.filter(item => 
+      settings.checklistItemSettings[item] === "required"
+    );
+    
+    const completedRequired = requiredItems.filter(item => 
+      inspection.checklistItems?.[item] === true
+    ).length;
+    
+    const totalRequired = requiredItems.length;
+    const percentage = totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 100;
+    
+    return { completed: completedRequired, total: totalRequired, percentage };
   };
 
   const getStatusBadge = (status: string) => {
@@ -171,7 +218,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
     createRetestMutation.mutate(inspectionId);
   };
 
-  if (loadingInProgress || loadingCompleted) {
+  if (loadingInProgress || loadingCompleted || loadingUploaded) {
     return (
       <div className="p-4 space-y-6">
         <div className="grid grid-cols-2 gap-4">
@@ -187,6 +234,11 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       </div>
     );
   }
+
+  // Filter completed inspections to only show those not uploaded to VicRoads
+  const nonUploadedCompletedInspections = completedInspections.filter(inspection => 
+    !inspection.uploadedToVicRoadsAt
+  );
 
   const completedToday = completedInspections.filter(inspection => {
     const completedDate = new Date(inspection.completedAt || inspection.updatedAt);
@@ -293,15 +345,15 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             <InspectionCardSkeleton />
             <InspectionCardSkeleton />
           </>
-        ) : completedInspections.length === 0 ? (
+        ) : nonUploadedCompletedInspections.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-gray-500">
-              No completed inspections
+              No completed inspections pending upload
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {completedInspections.slice(0, 5).map((inspection) => (
+            {nonUploadedCompletedInspections.slice(0, 5).map((inspection) => (
               <Card key={inspection.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -310,6 +362,9 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                       <p className="text-sm text-gray-600">{inspection.clientName}</p>
                       <p className="text-xs text-gray-500">{inspection.vehicleDescription}</p>
                       <p className="text-xs text-gray-400 mt-1">
+                        Created: {new Date(inspection.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400">
                         Completed: {inspection.completedAt ? new Date(inspection.completedAt).toLocaleDateString() : new Date(inspection.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -323,6 +378,20 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                       onClick={() => onOpenInspection(inspection.id, true)}
                     >
                       View Report
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white transition-all duration-200 hover:scale-105"
+                      onClick={() => uploadToVicRoadsMutation.mutate(inspection.id)}
+                      disabled={uploadToVicRoadsMutation.isPending}
+                    >
+                      {uploadToVicRoadsMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        "Upload to VicRoads"
+                      )}
                     </Button>
                     {inspection.status === "fail" && (
                       <Button 
@@ -340,6 +409,70 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                         )}
                       </Button>
                     )}
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => handleDeleteClick(inspection)}
+                      className="transition-all duration-200 hover:scale-105"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Uploaded to VicRoads Inspections */}
+      <section>
+        <h2 className="text-lg font-medium mb-3 text-on-surface">Uploaded to VicRoads</h2>
+        {loadingUploaded ? (
+          <>
+            <InspectionCardSkeleton />
+            <InspectionCardSkeleton />
+          </>
+        ) : uploadedInspections.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center text-gray-500">
+              No inspections uploaded to VicRoads yet
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {uploadedInspections.slice(0, 5).map((inspection) => (
+              <Card key={inspection.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-medium text-on-surface">{inspection.roadworthyNumber}</h3>
+                      <p className="text-sm text-gray-600">{inspection.clientName}</p>
+                      <p className="text-xs text-gray-500">{inspection.vehicleDescription}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Created: {new Date(inspection.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Completed: {inspection.completedAt ? new Date(inspection.completedAt).toLocaleDateString() : new Date(inspection.updatedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Uploaded to VicRoads: {inspection.uploadedToVicRoadsAt ? new Date(inspection.uploadedToVicRoadsAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      {getStatusBadge(inspection.status)}
+                      <Badge className="bg-green-100 text-green-800 mt-1 text-xs">Uploaded</Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="secondary" 
+                      className="flex-1 transition-all duration-200 hover:scale-105"
+                      onClick={() => onOpenInspection(inspection.id, true)}
+                    >
+                      View Report
+                    </Button>
                     <Button 
                       variant="destructive" 
                       size="icon"

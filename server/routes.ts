@@ -443,6 +443,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mark inspection as uploaded to VicRoads
+  app.post("/api/inspections/:id/upload-to-vicroads", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const inspection = await storage.getInspection(id);
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+
+      // Only allow upload for completed inspections
+      if (!inspection.completedAt) {
+        return res.status(400).json({ message: "Inspection must be completed before uploading to VicRoads" });
+      }
+
+      const updatedInspection = await storage.updateInspection(id, {
+        uploadedToVicRoadsAt: new Date().toISOString()
+      });
+
+      res.json({ 
+        message: "Inspection marked as uploaded to VicRoads",
+        inspection: updatedInspection
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark as uploaded to VicRoads" });
+    }
+  });
+
+  // Get uploaded inspections
+  app.get("/api/inspections/uploaded", async (req, res) => {
+    try {
+      const allInspections = await storage.getAllInspections();
+      const uploadedInspections = allInspections.filter(inspection => 
+        inspection.uploadedToVicRoadsAt && inspection.completedAt
+      );
+      res.json(uploadedInspections);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch uploaded inspections" });
+    }
+  });
+
   // Logo upload configuration
   const logoStorage = multer.diskStorage({
     destination: function (req, file, cb) {

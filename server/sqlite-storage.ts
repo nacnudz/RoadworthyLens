@@ -23,9 +23,6 @@ export class SqliteStorage implements IStorage {
         id: randomUUID(),
         checklistItemSettings: defaultChecklistSettings,
         checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
-        networkFolderPath: "",
-        networkUsername: "",
-        networkPasswordHash: "",
         updatedAt: new Date().toISOString(),
       });
     }
@@ -77,8 +74,7 @@ export class SqliteStorage implements IStorage {
       photos: {},
       testNumber: 1,
       completedAt: null,
-      uploadedAt: null,
-      uploadStatus: null,
+      uploadedToVicRoadsAt: null,
       createdAt: now,
       updatedAt: now,
     };
