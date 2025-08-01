@@ -77,6 +77,8 @@ export class SqliteStorage implements IStorage {
       photos: {},
       testNumber: 1,
       completedAt: null,
+      uploadedAt: null,
+      uploadStatus: null,
       createdAt: now,
       updatedAt: now,
     };

@@ -8,11 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2 } from "lucide-react";
+import { Camera, Images, CheckCircle, Save, ArrowLeft, Loader2, Upload, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
 import PhotoGallery from "@/components/photo-gallery";
+import { UploadLoadingDialog } from "@/components/upload-loading-dialog";
 
 interface Inspection {
   id: string;
@@ -23,6 +24,8 @@ interface Inspection {
   checklistItems: Record<string, boolean>;
   photos: Record<string, string[]>;
   completedAt?: string;
+  uploadedAt?: string;
+  uploadStatus?: string;
   createdAt: string;
   testNumber: number;
 }
@@ -47,6 +50,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
   const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<string>("");
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
 
   const { data: currentInspection, isLoading: inspectionLoading } = useQuery<Inspection>({
     queryKey: ["/api/inspections", inspectionId],

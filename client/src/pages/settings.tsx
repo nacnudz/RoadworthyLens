@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
-import { ArrowLeft, Upload, Loader2, GripVertical } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, GripVertical, Eye, EyeOff } from "lucide-react";
 import Logo from "@/components/logo";
 import {
   DndContext,
@@ -56,25 +56,25 @@ function SortableItem({ id, item, setting, description, onSettingChange }: Sorta
     <div
       ref={setNodeRef}
       style={style}
-      className="flex justify-between items-center py-4 px-4 bg-white border rounded-lg shadow-sm"
+      className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 px-4 bg-white border rounded-lg shadow-sm gap-3"
     >
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3 min-w-0 flex-1">
         <div
           {...attributes}
           {...listeners}
-          className="cursor-move text-gray-400 hover:text-gray-600"
+          className="cursor-move text-gray-400 hover:text-gray-600 flex-shrink-0"
         >
           <GripVertical className="h-5 w-5" />
         </div>
-        <div>
-          <h4 className="font-medium text-on-surface">{item}</h4>
-          <p className="text-sm text-gray-600">{description}</p>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-medium text-on-surface truncate">{item}</h4>
+          <p className="text-sm text-gray-600 truncate">{description}</p>
         </div>
       </div>
       <RadioGroup
         value={setting}
         onValueChange={(value) => onSettingChange(item, value)}
-        className="flex space-x-4"
+        className="flex flex-col sm:flex-row gap-2 sm:gap-4"
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="required" id={`${item}-required`} />
@@ -126,12 +126,15 @@ export default function Settings({ onCancel }: SettingsProps) {
   // Initialize local settings when data loads
   useEffect(() => {
     if (settings) {
+      const hasPassword = !!(settings as any).networkPasswordHash;
+      setHasStoredPassword(hasPassword);
+      
       setLocalSettings({
         checklistItemSettings: (settings as any).checklistItemSettings || {},
         checklistItemOrder: (settings as any).checklistItemOrder || [...CHECKLIST_ITEMS].sort(),
         networkFolderPath: (settings as any).networkFolderPath || "",
         networkUsername: (settings as any).networkUsername || "",
-        networkPassword: "", // Don't populate password field for security
+        networkPassword: hasPassword ? "••••••••••" : "", // Show dots for stored password
         logoUrl: (settings as any).logoUrl || ""
       });
     }
@@ -220,15 +223,20 @@ export default function Settings({ onCancel }: SettingsProps) {
   };
 
   const handleSave = () => {
-    // Create payload that includes all fields
-    const payload = {
+    // Create payload, only include password if it's not the masked dots and has been changed
+    const payload: any = {
       checklistItemSettings: localSettings.checklistItemSettings,
       checklistItemOrder: localSettings.checklistItemOrder,
       networkFolderPath: localSettings.networkFolderPath,
       networkUsername: localSettings.networkUsername,
-      networkPassword: localSettings.networkPassword, // Will be hashed on backend
       logoUrl: localSettings.logoUrl
     };
+    
+    // Only include password if it's been changed (not the masked dots)
+    if (localSettings.networkPassword && localSettings.networkPassword !== "••••••••••") {
+      payload.networkPassword = localSettings.networkPassword;
+    }
+    
     updateSettingsMutation.mutate(payload);
   };
 
@@ -395,16 +403,29 @@ export default function Settings({ onCancel }: SettingsProps) {
                 <Label htmlFor="networkPassword" className="text-sm font-medium text-gray-700">
                   Password
                 </Label>
-                <Input
-                  id="networkPassword"
-                  type="password"
-                  value={localSettings.networkPassword}
-                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkPassword: e.target.value }))}
-                  placeholder="Network password"
-                  className="mt-2"
-                />
+                <div className="relative mt-2">
+                  <Input
+                    id="networkPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={localSettings.networkPassword}
+                    onChange={(e) => setLocalSettings(prev => ({ ...prev, networkPassword: e.target.value }))}
+                    placeholder={hasStoredPassword ? "••••••••••" : "Enter password"}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Password will be securely hashed before storage
+                  {hasStoredPassword ? "Leave blank to keep existing password" : "Password will be securely hashed before storage"}
                 </p>
               </div>
             </div>

@@ -38,6 +38,8 @@ export const inspections = sqliteTable("inspections", {
   photos: text("photos", { mode: "json" }).notNull().default("{}"),
   testNumber: integer("test_number").notNull().default(1), // 1 for initial test, 2+ for retests
   completedAt: text("completed_at"),
+  uploadedAt: text("uploaded_at"),
+  uploadStatus: text("upload_status"), // "pending", "success", "failed", null
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
