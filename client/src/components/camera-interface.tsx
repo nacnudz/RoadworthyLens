@@ -46,6 +46,8 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         title: "Success",
         description: "Photo uploaded successfully",
       });
+      // Stop camera before closing interface
+      stopCamera();
       // Close camera interface after successful photo upload
       onPhotoTaken();
     },
@@ -187,9 +189,21 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
 
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      console.log('Stopping camera, closing', stream.getTracks().length, 'tracks');
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log('Stopped track:', track.kind, track.readyState);
+      });
+      
+      // Also clear the video element's source
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        console.log('Cleared video element source');
+      }
+      
       setStream(null);
       setCameraReady(false);
+      console.log('Camera fully stopped');
     }
   };
 
