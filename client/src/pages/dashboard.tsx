@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { CustomProgress } from "@/components/ui/custom-progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -319,15 +319,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                         <span>Progress</span>
                         <span>{percentage}%</span>
                       </div>
-                      <div className="relative">
-                        <Progress value={percentage} className="h-2" />
-                        {percentage === 100 && (
-                          <div 
-                            className="absolute top-0 left-0 h-2 bg-green-600 rounded-full transition-all"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        )}
-                      </div>
+                      <CustomProgress value={percentage} className="h-2" />
                       <div className="text-xs text-gray-500 mt-1">
                         {completed} of {total} items completed
                       </div>
