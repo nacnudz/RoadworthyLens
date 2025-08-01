@@ -23,7 +23,7 @@ export default function BottomNavigation({ currentView, onViewChange }: BottomNa
             onClick={() => onViewChange(id)}
             className={`flex flex-col items-center py-3 px-4 rounded-lg transition-colors duration-200 ${
               currentView === id 
-                ? "text-white bg-primary" 
+                ? "text-primary hover:text-white hover:bg-primary" 
                 : "text-gray-500 hover:text-white hover:bg-primary"
             }`}
           >
