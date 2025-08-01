@@ -117,10 +117,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/inspections/:id", async (req, res) => {
     try {
       const updates = req.body;
+      console.log(`Updating inspection ${req.params.id} with:`, updates);
       const inspection = await storage.updateInspection(req.params.id, updates);
       if (!inspection) {
         return res.status(404).json({ message: "Inspection not found" });
       }
+      console.log(`Updated inspection status to: ${inspection.status}`);
       res.json(inspection);
     } catch (error) {
       res.status(500).json({ message: "Failed to update inspection" });
@@ -201,11 +203,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/inspections/:id/complete", async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Get the most up-to-date inspection data (status should have been updated by PATCH call)
       const inspection = await storage.getInspection(id);
       
       if (!inspection) {
         return res.status(404).json({ message: "Inspection not found" });
       }
+
+      console.log(`Completing inspection ${inspection.roadworthyNumber} with status: ${inspection.status}`);
 
       // Get current settings to check required items and network config
       const settings = await storage.getSettings();
