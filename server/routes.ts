@@ -230,8 +230,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             console.log(`Starting SMB upload to: ${settings.networkFolderPath}/${inspection.roadworthyNumber}`);
             
+            // Check if we're trying to access a Windows network path from Linux environment
+            const isWindowsNetworkPath = settings.networkFolderPath.startsWith('\\\\');
+            
+            if (isWindowsNetworkPath) {
+              console.warn("Windows UNC network paths cannot be accessed directly from Linux container environment");
+              throw new Error("Network upload not supported in current environment. Windows network paths require proper SMB mounting or network drive mapping.");
+            }
+            
             // Create the network directory structure
-            const networkDir = `${settings.networkFolderPath}/${inspection.roadworthyNumber}`;
+            const networkDir = path.join(settings.networkFolderPath, inspection.roadworthyNumber);
             
             // Try to create the network directory if it doesn't exist
             try {
@@ -241,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             } catch (dirError: unknown) {
               console.warn(`Could not create network directory: ${(dirError as Error).message}`);
-              // Continue with upload attempt anyway
+              throw new Error(`Cannot access network location: ${settings.networkFolderPath}`);
             }
             
             // Copy all photos with proper filename extraction
@@ -378,6 +386,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Check if we're trying to access a Windows network path from Linux environment
+      const isWindowsNetworkPath = settings.networkFolderPath.startsWith('\\\\');
+      
+      if (isWindowsNetworkPath) {
+        return res.status(400).json({ 
+          message: "Windows network paths cannot be accessed from this environment. Use a local path or set up proper network mounting.",
+          accessibilityCheck: false 
+        });
+      }
+      
       // Test network accessibility by attempting to access the path
       let isNetworkAccessible = true;
       try {

@@ -98,6 +98,8 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Retry functionality accessible from completed inspection view
 - Automatic directory creation on network paths
 - Backup copies maintained in local network_uploads folder
+- **Environment Limitation**: Windows UNC network paths (\\\\server\\share) cannot be accessed from Linux container environment
+- Network uploads require local paths or proper SMB mounting setup
 
 ### Photo Gallery Implementation
 - Created simplified photo gallery component for viewing inspection item photos
