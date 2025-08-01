@@ -21,9 +21,9 @@ export default function BottomNavigation({ currentView, onViewChange }: BottomNa
             key={id}
             variant="ghost"
             onClick={() => onViewChange(id)}
-            className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 ${
+            className={`flex flex-col items-center py-3 px-4 rounded-lg transition-colors duration-200 ${
               currentView === id 
-                ? "text-primary bg-primary/10" 
+                ? "text-white bg-primary" 
                 : "text-gray-500 hover:text-white hover:bg-primary"
             }`}
           >
