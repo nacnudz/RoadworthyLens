@@ -96,7 +96,7 @@ export default function PhotoGallery({
                   onClick={() => setCurrentPhotoIndex(index)}
                   className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
                     index === currentPhotoIndex
-                      ? "border-blue-500"
+                      ? "border-primary"
                       : "border-gray-600"
                   }`}
                 >

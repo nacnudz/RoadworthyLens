@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
           <img 
             src={logoImage} 
             alt="Roadworthy Inspection Logo" 
-            className="relative w-32 h-32 md:w-40 md:h-40 object-contain animate-float shadow-2xl rounded-2xl"
+            className="relative w-40 h-40 md:w-48 md:h-48 object-contain animate-float shadow-2xl rounded-2xl"
           />
         </div>
         
