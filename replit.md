@@ -175,7 +175,15 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - JSONB fields for flexible checklist and photo storage
 
 ### Environment Requirements
-- `DATABASE_URL` for PostgreSQL connection
+- `DATABASE_URL` for SQLite database connection (file:./data/database.sqlite in production)
 - `NODE_ENV` for environment detection
 - Upload directory created automatically at runtime
-- Session storage configured for PostgreSQL
+- Session storage configured for database
+
+### Docker Deployment
+- Multi-stage Docker build with Node.js 20 Alpine base image
+- Production-ready containerization with security best practices
+- Docker Compose setup with persistent volumes for data, uploads, and completed inspections
+- Optional nginx reverse proxy for production with rate limiting and SSL support
+- Health checks and proper user permissions for security
+- Comprehensive deployment documentation in README.Docker.md
