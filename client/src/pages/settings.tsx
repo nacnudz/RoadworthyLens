@@ -375,9 +375,8 @@ export default function Settings({ onCancel }: SettingsProps) {
           
           <div className="flex space-x-3 pt-6 border-t border-gray-200">
             <Button 
-              variant="secondary"
               onClick={onCancel} 
-              className="flex-1"
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white"
               disabled={updateSettingsMutation.isPending}
             >
               Cancel
