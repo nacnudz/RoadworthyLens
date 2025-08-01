@@ -10,6 +10,9 @@ const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
   ({ className, value = 0, ...props }, ref) => {
     const percentage = Math.max(0, Math.min(100, value))
     
+    // Use blue for 0-99%, green only for 100%
+    const progressColor = percentage === 100 ? 'rgb(34, 197, 94)' : 'hsl(207, 90%, 54%)'
+    
     return (
       <div
         ref={ref}
@@ -23,11 +26,7 @@ const CustomProgress = React.forwardRef<HTMLDivElement, CustomProgressProps>(
           className="h-full transition-all duration-300 ease-in-out"
           style={{ 
             width: `${percentage}%`,
-            background: percentage === 0 
-              ? 'hsl(207, 90%, 54%)' // Pure blue at 0%
-              : percentage === 100 
-                ? 'rgb(34, 197, 94)' // Pure green at 100%
-                : `linear-gradient(to right, hsl(207, 90%, 54%) ${100 - percentage}%, rgb(34, 197, 94) ${percentage}%)`
+            backgroundColor: progressColor
           }}
         />
       </div>
