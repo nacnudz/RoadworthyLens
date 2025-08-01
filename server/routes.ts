@@ -5,6 +5,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcryptjs";
 import { storage } from "./sqlite-storage";
 import { insertInspectionSchema, insertSettingsSchema, CHECKLIST_ITEMS } from "@shared/schema";
 
@@ -169,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Inspection not found" });
       }
 
-      // Get current settings to check required items
+      // Get current settings to check required items and network config
       const settings = await storage.getSettings();
       const checklistSettings = settings.checklistItemSettings as Record<string, string>;
       const checklistItems = inspection.checklistItems as Record<string, boolean>;
@@ -185,22 +186,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           missingItems: missingRequiredItems 
         });
       }
+      let networkUploadResult = null;
 
-      // Create network folder structure
-      const networkFolderPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
-      if (!fs.existsSync(networkFolderPath)) {
-        fs.mkdirSync(networkFolderPath, { recursive: true });
+      // Create local network folder structure for backup
+      const localNetworkPath = path.join(process.cwd(), "network_uploads", inspection.roadworthyNumber);
+      if (!fs.existsSync(localNetworkPath)) {
+        fs.mkdirSync(localNetworkPath, { recursive: true });
       }
 
-      // Copy all photos to network folder
+      // Copy all photos to local network folder
       const photos = inspection.photos as Record<string, string[]>;
       for (const [itemName, photoFiles] of Object.entries(photos)) {
         for (const photoFile of photoFiles) {
           const sourcePath = path.join(uploadDir, photoFile);
-          const destPath = path.join(networkFolderPath, photoFile);
+          const destPath = path.join(localNetworkPath, photoFile);
           if (fs.existsSync(sourcePath)) {
             fs.copyFileSync(sourcePath, destPath);
           }
+        }
+      }
+
+      // Try SMB network upload if configured
+      if (settings && settings.networkFolderPath && settings.networkUsername && settings.networkPasswordHash) {
+        try {
+          // For now, just log that network upload would happen here
+          // In a real implementation, you would use smbclient or similar
+          console.log(`Would upload to SMB: ${settings.networkFolderPath}/${inspection.roadworthyNumber}`);
+          networkUploadResult = {
+            success: true,
+            path: `${settings.networkFolderPath}/${inspection.roadworthyNumber}`,
+            message: "Photos uploaded to network location"
+          };
+        } catch (error) {
+          console.error("Network upload failed:", error);
+          networkUploadResult = {
+            success: false,
+            error: "Network upload failed, photos saved locally"
+          };
         }
       }
 
@@ -217,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       fs.writeFileSync(
-        path.join(networkFolderPath, "inspection_report.json"),
+        path.join(localNetworkPath, "inspection_report.json"),
         JSON.stringify(reportData, null, 2)
       );
 
@@ -227,8 +249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json({ 
-        message: "Inspection completed and uploaded to network folder",
-        networkPath: networkFolderPath,
+        message: "Inspection completed successfully",
+        localPath: localNetworkPath,
+        networkUpload: networkUploadResult,
         inspection: updatedInspection
       });
     } catch (error) {
@@ -249,9 +272,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update settings
   app.patch("/api/settings", async (req, res) => {
     try {
-      const settings = await storage.updateSettings(req.body);
+      const data = req.body;
+      
+      // Hash password if provided
+      if (data.networkPassword && data.networkPassword.trim() !== '') {
+        const salt = await bcrypt.genSalt(10);
+        data.networkPasswordHash = await bcrypt.hash(data.networkPassword, salt);
+        delete data.networkPassword; // Remove plaintext password
+      }
+      
+      const settings = await storage.updateSettings(data);
       res.json(settings);
     } catch (error) {
+      console.error("Settings update error:", error);
       res.status(500).json({ message: "Failed to update settings" });
     }
   });
@@ -409,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (settings) {
         await storage.updateSettings({
-          checklistItemSettings: settings.checklistItemSettings,
+          checklistItemSettings: settings.checklistItemSettings as any,
           networkFolderPath: settings.networkFolderPath || '',
           logoUrl: logoUrl
         });

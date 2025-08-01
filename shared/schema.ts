@@ -3,47 +3,6 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const inspections = sqliteTable("inspections", {
-  id: text("id").primaryKey(),
-  roadworthyNumber: text("roadworthy_number").notNull(),
-  clientName: text("client_name").default(""),
-  vehicleDescription: text("vehicle_description").default(""),
-  status: text("status").notNull().default("in-progress"), // "in-progress", "pass", "fail"
-  checklistItems: text("checklist_items", { mode: "json" }).notNull().default("{}"),
-  photos: text("photos", { mode: "json" }).notNull().default("{}"),
-  testNumber: integer("test_number").notNull().default(1), // 1 for initial test, 2+ for retests
-  completedAt: text("completed_at"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-});
-
-export const settings = sqliteTable("settings", {
-  id: text("id").primaryKey(),
-  checklistItemSettings: text("checklist_item_settings", { mode: "json" }).notNull().default("{}"),
-  networkFolderPath: text("network_folder_path").default(""),
-  logoUrl: text("logo_url"),
-  updatedAt: text("updated_at").notNull(),
-});
-
-export const insertInspectionSchema = createInsertSchema(inspections).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  clientName: z.string().optional().default(""),
-  vehicleDescription: z.string().optional().default(""),
-});
-
-export const insertSettingsSchema = createInsertSchema(settings).omit({
-  id: true,
-  updatedAt: true,
-});
-
-export type InsertInspection = z.infer<typeof insertInspectionSchema>;
-export type Inspection = typeof inspections.$inferSelect;
-export type InsertSettings = z.infer<typeof insertSettingsSchema>;
-export type Settings = typeof settings.$inferSelect;
-
 // Checklist items configuration
 export const CHECKLIST_ITEMS = [
   "VIN",
@@ -68,3 +27,47 @@ export const CHECKLIST_ITEMS = [
 ] as const;
 
 export type ChecklistItem = typeof CHECKLIST_ITEMS[number];
+
+export const inspections = sqliteTable("inspections", {
+  id: text("id").primaryKey(),
+  roadworthyNumber: text("roadworthy_number").notNull(),
+  clientName: text("client_name").default(""),
+  vehicleDescription: text("vehicle_description").default(""),
+  status: text("status").notNull().default("in-progress"), // "in-progress", "pass", "fail"
+  checklistItems: text("checklist_items", { mode: "json" }).notNull().default("{}"),
+  photos: text("photos", { mode: "json" }).notNull().default("{}"),
+  testNumber: integer("test_number").notNull().default(1), // 1 for initial test, 2+ for retests
+  completedAt: text("completed_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const settings = sqliteTable("settings", {
+  id: text("id").primaryKey(),
+  checklistItemSettings: text("checklist_item_settings", { mode: "json" }).notNull().default("{}"),
+  checklistItemOrder: text("checklist_item_order", { mode: "json" }),
+  networkFolderPath: text("network_folder_path").default(""),
+  networkUsername: text("network_username"),
+  networkPasswordHash: text("network_password_hash"),
+  logoUrl: text("logo_url"),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const insertInspectionSchema = createInsertSchema(inspections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  clientName: z.string().optional().default(""),
+  vehicleDescription: z.string().optional().default(""),
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertInspection = z.infer<typeof insertInspectionSchema>;
+export type Inspection = typeof inspections.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
+export type Settings = typeof settings.$inferSelect;

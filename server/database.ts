@@ -34,7 +34,10 @@ const createTablesSQL = `
   CREATE TABLE IF NOT EXISTS settings (
     id TEXT PRIMARY KEY,
     checklist_item_settings TEXT NOT NULL DEFAULT '{}',
+    checklist_item_order TEXT,
     network_folder_path TEXT DEFAULT '',
+    network_username TEXT,
+    network_password_hash TEXT,
     logo_url TEXT,
     updated_at TEXT NOT NULL
   );
@@ -45,13 +48,28 @@ sqlite.exec(createTablesSQL);
 // Migration function to add missing columns to existing databases
 function runMigrations() {
   try {
-    // Check if logo_url column exists, if not add it
     const tableInfo = sqlite.prepare("PRAGMA table_info(settings)").all() as any[];
-    const hasLogoUrl = tableInfo.some(col => col.name === 'logo_url');
+    const columnNames = tableInfo.map((col: any) => col.name);
     
-    if (!hasLogoUrl) {
+    // Add missing columns
+    if (!columnNames.includes('logo_url')) {
       sqlite.prepare("ALTER TABLE settings ADD COLUMN logo_url TEXT").run();
       console.log("Added logo_url column to settings table");
+    }
+    
+    if (!columnNames.includes('checklist_item_order')) {
+      sqlite.prepare("ALTER TABLE settings ADD COLUMN checklist_item_order TEXT").run();
+      console.log("Added checklist_item_order column to settings table");
+    }
+    
+    if (!columnNames.includes('network_username')) {
+      sqlite.prepare("ALTER TABLE settings ADD COLUMN network_username TEXT").run();
+      console.log("Added network_username column to settings table");
+    }
+    
+    if (!columnNames.includes('network_password_hash')) {
+      sqlite.prepare("ALTER TABLE settings ADD COLUMN network_password_hash TEXT").run();
+      console.log("Added network_password_hash column to settings table");
     }
   } catch (error) {
     console.log("Migration completed or table structure already correct");

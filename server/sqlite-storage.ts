@@ -22,7 +22,10 @@ export class SqliteStorage implements IStorage {
       await db.insert(settings).values({
         id: randomUUID(),
         checklistItemSettings: defaultChecklistSettings,
+        checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
         networkFolderPath: "",
+        networkUsername: "",
+        networkPasswordHash: "",
         updatedAt: new Date().toISOString(),
       });
     }

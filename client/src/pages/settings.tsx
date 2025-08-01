@@ -8,8 +8,90 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
-import { ArrowLeft, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, GripVertical } from "lucide-react";
 import Logo from "@/components/logo";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Item Component
+interface SortableItemProps {
+  id: string;
+  item: string;
+  setting: string;
+  description: string;
+  onSettingChange: (item: string, value: string) => void;
+}
+
+function SortableItem({ id, item, setting, description, onSettingChange }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex justify-between items-center py-4 px-4 bg-white border rounded-lg shadow-sm"
+    >
+      <div className="flex items-center space-x-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-move text-gray-400 hover:text-gray-600"
+        >
+          <GripVertical className="h-5 w-5" />
+        </div>
+        <div>
+          <h4 className="font-medium text-on-surface">{item}</h4>
+          <p className="text-sm text-gray-600">{description}</p>
+        </div>
+      </div>
+      <RadioGroup
+        value={setting}
+        onValueChange={(value) => onSettingChange(item, value)}
+        className="flex space-x-4"
+      >
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="required" id={`${item}-required`} />
+          <Label htmlFor={`${item}-required`} className="text-sm">Required</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="optional" id={`${item}-optional`} />
+          <Label htmlFor={`${item}-optional`} className="text-sm">Optional</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="hidden" id={`${item}-hidden`} />
+          <Label htmlFor={`${item}-hidden`} className="text-sm">Hidden</Label>
+        </div>
+      </RadioGroup>
+    </div>
+  );
+}
 
 interface SettingsProps {
   onCancel: () => void;
@@ -25,11 +107,17 @@ export default function Settings({ onCancel }: SettingsProps) {
 
   const [localSettings, setLocalSettings] = useState<{
     checklistItemSettings: Record<string, string>;
+    checklistItemOrder: string[];
     networkFolderPath: string;
+    networkUsername: string;
+    networkPassword: string;
     logoUrl?: string;
   }>({
     checklistItemSettings: {},
+    checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
     networkFolderPath: "",
+    networkUsername: "",
+    networkPassword: "",
     logoUrl: ""
   });
 
@@ -39,9 +127,12 @@ export default function Settings({ onCancel }: SettingsProps) {
   useEffect(() => {
     if (settings) {
       setLocalSettings({
-        checklistItemSettings: settings.checklistItemSettings || {},
-        networkFolderPath: settings.networkFolderPath || "",
-        logoUrl: settings.logoUrl || ""
+        checklistItemSettings: (settings as any).checklistItemSettings || {},
+        checklistItemOrder: (settings as any).checklistItemOrder || [...CHECKLIST_ITEMS].sort(),
+        networkFolderPath: (settings as any).networkFolderPath || "",
+        networkUsername: (settings as any).networkUsername || "",
+        networkPassword: "", // Don't populate password field for security
+        logoUrl: (settings as any).logoUrl || ""
       });
     }
   }, [settings]);
@@ -75,7 +166,7 @@ export default function Settings({ onCancel }: SettingsProps) {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: { checklistItemSettings: Record<string, string>; networkFolderPath: string; logoUrl?: string }) => {
+    mutationFn: async (data: any) => {
       const response = await apiRequest("PATCH", "/api/settings", data);
       return response.json();
     },
@@ -129,7 +220,37 @@ export default function Settings({ onCancel }: SettingsProps) {
   };
 
   const handleSave = () => {
-    updateSettingsMutation.mutate(localSettings);
+    // Create payload that includes all fields
+    const payload = {
+      checklistItemSettings: localSettings.checklistItemSettings,
+      checklistItemOrder: localSettings.checklistItemOrder,
+      networkFolderPath: localSettings.networkFolderPath,
+      networkUsername: localSettings.networkUsername,
+      networkPassword: localSettings.networkPassword, // Will be hashed on backend
+      logoUrl: localSettings.logoUrl
+    };
+    updateSettingsMutation.mutate(payload);
+  };
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for checklist reordering
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = localSettings.checklistItemOrder.indexOf(active.id);
+      const newIndex = localSettings.checklistItemOrder.indexOf(over.id);
+
+      const newOrder = arrayMove(localSettings.checklistItemOrder, oldIndex, newIndex);
+      setLocalSettings({ ...localSettings, checklistItemOrder: newOrder });
+    }
   };
 
   const getItemDescription = (item: string): string => {
@@ -238,58 +359,87 @@ export default function Settings({ onCancel }: SettingsProps) {
             <p className="text-sm text-gray-600 mb-4">
               Set the network folder path where completed inspection photos will be saved.
             </p>
-            <div>
-              <Label htmlFor="networkFolder" className="text-sm font-medium text-gray-700">
-                Network Folder Path
-              </Label>
-              <Input
-                id="networkFolder"
-                type="text"
-                value={localSettings.networkFolderPath}
-                onChange={(e) => handleNetworkFolderChange(e.target.value)}
-                placeholder="e.g., \\\\server\\inspections or /mnt/network/inspections"
-                className="mt-2"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Photos will be organized as: [Network Folder]/[Roadworthy Number]/[Initial Test|Retest 1|Retest 2]/
-              </p>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="networkFolder" className="text-sm font-medium text-gray-700">
+                  Network Folder Path
+                </Label>
+                <Input
+                  id="networkFolder"
+                  type="text"
+                  value={localSettings.networkFolderPath}
+                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkFolderPath: e.target.value }))}
+                  placeholder="e.g., \\\\server\\inspections or /mnt/network/inspections"
+                  className="mt-2"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Photos will be organized as: [Network Folder]/[Roadworthy Number]/[Initial Test|Retest 1|Retest 2]/
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="networkUsername" className="text-sm font-medium text-gray-700">
+                  Username
+                </Label>
+                <Input
+                  id="networkUsername"
+                  type="text"
+                  value={localSettings.networkUsername}
+                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkUsername: e.target.value }))}
+                  placeholder="Network username"
+                  className="mt-2"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="networkPassword" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <Input
+                  id="networkPassword"
+                  type="password"
+                  value={localSettings.networkPassword}
+                  onChange={(e) => setLocalSettings(prev => ({ ...prev, networkPassword: e.target.value }))}
+                  placeholder="Network password"
+                  className="mt-2"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Password will be securely hashed before storage
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Checklist Settings */}
+          {/* Checklist Settings with Drag and Drop */}
           <div>
-            <h3 className="text-lg font-medium mb-4 text-on-surface">Checklist Item Requirements</h3>
+            <h3 className="text-lg font-medium mb-4 text-on-surface">Checklist Item Requirements & Order</h3>
             <p className="text-sm text-gray-600 mb-6">
-              Configure which items are required or optional for all inspections.
-            </p></div>
-          
-          <div className="space-y-4">
-            {CHECKLIST_ITEMS.map((item) => (
-              <div key={item} className="flex items-center justify-between py-3 border-b border-gray-100">
-                <div>
-                  <h3 className="font-medium text-on-surface">{item}</h3>
-                  <p className="text-sm text-gray-500">{getItemDescription(item)}</p>
+              Configure which items are required or optional for all inspections. Drag to reorder items.
+            </p>
+            
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={localSettings.checklistItemOrder}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {localSettings.checklistItemOrder.map((item) => (
+                    <SortableItem
+                      key={item}
+                      id={item}
+                      item={item}
+                      setting={localSettings.checklistItemSettings[item] || "optional"}
+                      description={getItemDescription(item)}
+                      onSettingChange={handleItemSettingChange}
+                    />
+                  ))}
                 </div>
-                <RadioGroup
-                  value={localSettings.checklistItemSettings[item] || "optional"}
-                  onValueChange={(value) => handleItemSettingChange(item, value)}
-                  className="flex items-center space-x-6"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="required" id={`${item}-required`} />
-                    <Label htmlFor={`${item}-required`} className="text-sm cursor-pointer">
-                      Required
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="optional" id={`${item}-optional`} />
-                    <Label htmlFor={`${item}-optional`} className="text-sm cursor-pointer">
-                      Optional
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            ))}
+              </SortableContext>
+            </DndContext>
           </div>
           
           <div className="flex space-x-3 pt-6 border-t border-gray-200">

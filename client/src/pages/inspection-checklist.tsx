@@ -30,6 +30,7 @@ interface Inspection {
 interface Settings {
   id: string;
   checklistItemSettings: Record<string, string>;
+  checklistItemOrder?: string[];
 }
 
 interface InspectionChecklistProps {
@@ -190,8 +191,9 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const checklistSettings = (settings?.checklistItemSettings as Record<string, string>) || {};
 
   const getProgressInfo = () => {
+    const orderedItems = settings?.checklistItemOrder || CHECKLIST_ITEMS;
     const completed = Object.values(checklistItems).filter(Boolean).length;
-    const total = CHECKLIST_ITEMS.length;
+    const total = orderedItems.length;
     const percentage = Math.round((completed / total) * 100);
     return { completed, total, percentage };
   };
@@ -214,7 +216,8 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
   const canComplete = () => {
     // Check if all required items are completed
-    return CHECKLIST_ITEMS.every(item => {
+    const orderedItems = settings?.checklistItemOrder || CHECKLIST_ITEMS;
+    return orderedItems.every(item => {
       const isRequired = checklistSettings[item] === "required";
       const isCompleted = checklistItems[item];
       return !isRequired || isCompleted;
@@ -312,25 +315,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Checklist Items */}
       <div className="space-y-3">
-        {[...CHECKLIST_ITEMS]
-          .sort((a, b) => {
-            const aRequired = checklistSettings[a] === "required";
-            const bRequired = checklistSettings[b] === "required";
-            const aHidden = checklistSettings[a] === "hidden";
-            const bHidden = checklistSettings[b] === "hidden";
-            
-            // Hide hidden items
-            if (aHidden && !bHidden) return 1;
-            if (!aHidden && bHidden) return -1;
-            if (aHidden && bHidden) return 0;
-            
-            // Required items first
-            if (aRequired && !bRequired) return -1;
-            if (!aRequired && bRequired) return 1;
-            
-            // Then alphabetical
-            return a.localeCompare(b);
-          })
+        {(settings?.checklistItemOrder || CHECKLIST_ITEMS)
           .filter(item => checklistSettings[item] !== "hidden")
           .map((item) => {
           const { isRequired, isCompleted, photoCount, statusText, statusColor } = getItemStatus(item);
