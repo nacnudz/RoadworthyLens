@@ -91,6 +91,8 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inspections"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inspections/completed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/uploaded"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inspections/in-progress"] });
       toast({
         title: "Success",
         description: "Inspection deleted successfully",
