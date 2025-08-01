@@ -319,7 +319,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                         <span>Progress</span>
                         <span>{percentage}%</span>
                       </div>
-                      <Progress value={percentage} className="h-2 [&>div]:bg-primary" />
+                      <Progress value={percentage} className={`h-2 ${percentage === 100 ? '[&>div]:bg-green-600' : '[&>div]:bg-primary'}`} />
                       <div className="text-xs text-gray-500 mt-1">
                         {completed} of {total} items completed
                       </div>
