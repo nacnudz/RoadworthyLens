@@ -66,10 +66,10 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
         
         {/* App title */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-wide">
+          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
             Road Worthy Lens
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 font-medium">
+          <p className="text-lg md:text-xl text-white/80 font-medium">
             Vehicle Inspection Management
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
               <div className="absolute inset-0 bg-white/30 animate-shimmer rounded-full"></div>
             </div>
           </div>
-          <p className="text-sm text-gray-500 text-center animate-pulse">
+          <p className="text-sm text-white/70 text-center animate-pulse">
             Loading application...
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
       
       {/* Version info */}
       <div className="absolute bottom-8 text-center">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-white/60">
           Version 1.0 • Vehicle Inspection System
         </p>
       </div>

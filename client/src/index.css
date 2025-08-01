@@ -83,15 +83,20 @@
   }
 
   body {
-    @apply font-sans antialiased text-on-surface;
+    @apply font-sans antialiased;
     font-family: 'Roboto', system-ui, -apple-system, sans-serif;
     background-color: #5E93B5;
+    color: white;
   }
 }
 
 @layer utilities {
   .text-on-surface {
     color: var(--on-surface);
+  }
+  
+  .text-on-background {
+    color: white;
   }
   
   .bg-surface {
