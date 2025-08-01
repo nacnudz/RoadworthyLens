@@ -421,12 +421,11 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                         Take Photo
                       </Button>
                       <Button 
-                        variant="secondary"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-2"
                         onClick={() => {
                           setSelectedGalleryItem(item);
                           setPhotoGalleryOpen(true);
                         }}
-                        className="flex-1 text-xs px-2"
                       >
                         <Images className="mr-1 h-3 w-3" />
                         View {photoCount > 0 ? `(${photoCount})` : ''}
@@ -435,7 +434,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                   )}
                   {isViewOnly && (
                     <Button 
-                      variant="secondary"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-2"
                       disabled={photoCount === 0}
                       onClick={() => {
                         if (photoCount > 0) {
@@ -443,7 +442,6 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                           setPhotoGalleryOpen(true);
                         }
                       }}
-                      className="w-full text-xs px-2"
                     >
                       <Images className="mr-1 h-3 w-3" />
                       View Photos {photoCount > 0 ? `(${photoCount})` : ''}

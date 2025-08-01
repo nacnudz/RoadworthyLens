@@ -61,10 +61,9 @@ export default function PhotoGallery({
               </Badge>
             </div>
             <Button
-              variant="ghost"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
               size="icon"
               onClick={onClose}
-              className="text-white hover:bg-white/20"
             >
               <X className="h-5 w-5" />
             </Button>
