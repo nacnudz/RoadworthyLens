@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(205, 35%, 54%);
-  --foreground: hsl(0, 0%, 100%);
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
   --muted: hsl(60, 4.8%, 95.9%);
   --muted-foreground: hsl(25, 5.3%, 44.7%);
   --popover: hsl(0, 0%, 100%);
@@ -83,8 +83,9 @@
   }
 
   body {
-    @apply font-sans antialiased bg-surface text-on-surface;
+    @apply font-sans antialiased text-on-surface;
     font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+    background-color: #5E93B5;
   }
 }
 
