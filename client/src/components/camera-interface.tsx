@@ -20,7 +20,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const uploadPhotoMutation = useMutation({
     mutationFn: async (photoBlob: Blob) => {
@@ -59,13 +59,10 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   // Initialize camera when component mounts
   useEffect(() => {
     const initializeCamera = async () => {
-      // Wait a bit for the component to fully render
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      if (!isInitialized) {
-        setIsInitialized(true);
-        startCamera();
-      }
+      console.log('Component mounted, waiting for render...');
+      // Wait for the DOM to render
+      await new Promise(resolve => setTimeout(resolve, 100));
+      startCamera();
     };
     
     initializeCamera();
@@ -73,11 +70,11 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     return () => {
       stopCamera();
     };
-  }, []);
+  }, [facingMode]);
 
   const startCamera = async () => {
     console.log('Starting camera initialization...');
-    setIsLoading(true);
+    setCameraError(null);
     
     let mediaStream: MediaStream | null = null;
     
@@ -89,21 +86,23 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         setStream(null);
       }
       
-      console.log('Step 1: Checking video element...');
+      console.log('Step 1: Looking for video element...');
+      console.log('Video ref current:', videoRef.current);
+      console.log('Document video elements:', document.querySelectorAll('video').length);
       
       // Wait for video element to be available with retries
       let videoElement = videoRef.current;
       let attempts = 0;
       
-      while (!videoElement && attempts < 20) {
+      while (!videoElement && attempts < 10) {
         console.log(`Waiting for video element, attempt ${attempts + 1}`);
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         videoElement = videoRef.current;
         attempts++;
       }
       
       if (!videoElement) {
-        throw new Error('Video element not available after waiting');
+        throw new Error('Video element not found in DOM');
       }
       
       console.log('Step 2: Video element available, checking media devices...');
@@ -157,11 +156,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       console.log('Step 9: Camera setup complete');
       
     } catch (error) {
-      console.error("Camera initialization failed at step:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error constructor:", error?.constructor?.name);
-      console.error("Error message:", error instanceof Error ? error.message : 'No message');
-      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack');
+      console.error("Camera initialization failed:", error);
       
       // Clean up stream if we got one
       if (mediaStream) {
@@ -169,12 +164,14 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
       }
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown camera error';
+      setCameraError(errorMessage);
+      setIsLoading(false);
+      
       toast({
         title: "Camera Error",
         description: `Could not access camera: ${errorMessage}`,
         variant: "destructive",
       });
-      setIsLoading(false);
     }
   };
 
@@ -259,33 +256,47 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
     <div className="relative h-screen bg-black">
       {/* Camera preview */}
       <div className="absolute inset-0 flex items-center justify-center">
-        {isLoading ? (
-          <div className="text-white text-center p-8">
+        {/* Always render video element */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          webkit-playsinline="true"
+          className="w-full h-full object-cover"
+          style={{ 
+            transform: 'scaleX(-1)',
+            backgroundColor: '#000'
+          }}
+          onLoadStart={() => console.log('Video load started')}
+          onLoadedData={() => console.log('Video data loaded')}
+          onPlay={() => console.log('Video started playing')}
+          onError={(e) => console.error('Video error:', e)}
+          onLoadedMetadata={() => console.log('Video metadata loaded')}
+        />
+        <canvas ref={canvasRef} className="hidden" />
+        
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-lg">Starting camera...</p>
             <p className="text-sm mt-2 opacity-75">Please allow camera access when prompted</p>
           </div>
-        ) : (
-          <>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              webkit-playsinline="true"
-              className="w-full h-full object-cover"
-              style={{ 
-                transform: 'scaleX(-1)',
-                backgroundColor: '#000'
-              }}
-              onLoadStart={() => console.log('Video load started')}
-              onLoadedData={() => console.log('Video data loaded')}
-              onPlay={() => console.log('Video started playing')}
-              onError={(e) => console.error('Video error:', e)}
-              onLoadedMetadata={() => console.log('Video metadata loaded')}
-            />
-            <canvas ref={canvasRef} className="hidden" />
-          </>
+        )}
+        
+        {/* Error overlay */}
+        {cameraError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black bg-opacity-75">
+            <p className="text-lg mb-4">Camera Error</p>
+            <p className="text-sm opacity-75 text-center px-4">{cameraError}</p>
+            <button 
+              onClick={startCamera}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
         )}
       </div>
 
