@@ -162,6 +162,25 @@
     color: hsl(0, 0%, 30%) !important;
   }
   
+  /* Fix dialog text colors */
+  [data-radix-dialog-content] h2, 
+  [data-radix-dialog-content] .font-semibold,
+  [data-radix-dialog-content] .text-lg {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  [data-radix-dialog-content] p,
+  [data-radix-dialog-content] .text-sm,
+  [data-radix-dialog-content] .text-xs,
+  [data-radix-dialog-content] .text-gray-600,
+  [data-radix-dialog-content] .text-gray-500 {
+    color: hsl(0, 0%, 25%) !important;
+  }
+  
+  [data-radix-dialog-content] label {
+    color: hsl(0, 0%, 15%) !important;
+  }
+  
   /* Drop shadows for forms and cards */
   .card-shadow {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
