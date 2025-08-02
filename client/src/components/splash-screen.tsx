@@ -51,7 +51,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-surface flex flex-col items-center justify-center transition-all duration-800 ${
+      className={`fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col items-center justify-center transition-all duration-800 ${
         fadeOut ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
       }`}
     >
@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute bg-primary/20 rounded-full animate-float-random"
+            className="absolute bg-white/10 rounded-full animate-float-random"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -75,8 +75,8 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
 
       {/* Gradient orbs */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/8 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
       </div>
       
       {/* Main content */}
@@ -102,10 +102,10 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
         
         {/* App title with stagger animation */}
         <div className={`text-center space-y-3 transition-all duration-1000 delay-300 ${animationPhase === 'initial' ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}`}>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-800 via-primary to-gray-800 bg-clip-text text-transparent tracking-wide">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent tracking-wide">
             Roadworthy Lens
           </h1>
-          <p className="text-xl md:text-2xl text-gray-700 font-light tracking-wide">
+          <p className="text-xl md:text-2xl text-white/90 font-light tracking-wide">
             Vehicle Inspection Management
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
         <div className={`w-80 md:w-96 space-y-6 transition-all duration-1000 delay-500 ${animationPhase === 'initial' ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}`}>
           {/* Progress bar */}
           <div className="relative">
-            <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden backdrop-blur-sm">
+            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
               <div 
                 className="h-full bg-gradient-to-r from-primary via-blue-400 to-primary rounded-full transition-all duration-500 ease-out relative"
                 style={{ width: `${Math.min(progress, 100)}%` }}
@@ -124,14 +124,14 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
               </div>
             </div>
             {/* Progress percentage */}
-            <div className="absolute -top-8 left-0 text-sm text-gray-600 font-medium">
+            <div className="absolute -top-8 left-0 text-sm text-white/70 font-medium">
               {Math.round(progress)}%
             </div>
           </div>
           
           {/* Loading text with typewriter effect */}
           <div className="text-center">
-            <p className="text-base text-gray-600 font-light tracking-wide">
+            <p className="text-base text-white/80 font-light tracking-wide">
               {animationPhase === 'initial' && 'Initializing...'}
               {animationPhase === 'loading' && 'Loading application...'}
               {animationPhase === 'complete' && 'Ready to launch'}
@@ -143,7 +143,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
         <div className={`transition-all duration-1000 delay-700 ${animationPhase === 'initial' ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}>
           <div className="relative w-12 h-12">
             {/* Outer ring */}
-            <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
+            <div className="absolute inset-0 rounded-full border-2 border-white/20"></div>
             {/* Spinning arc */}
             <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary animate-spin"></div>
             {/* Inner dot */}
@@ -154,7 +154,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
       
       {/* Version info */}
       <div className={`absolute bottom-8 text-center transition-all duration-1000 delay-1000 ${animationPhase === 'initial' ? 'opacity-0' : 'opacity-100'}`}>
-        <p className="text-sm text-gray-500 font-light tracking-wide">
+        <p className="text-sm text-white/50 font-light tracking-wide">
           Version 1.0 • Professional Vehicle Inspection System
         </p>
       </div>

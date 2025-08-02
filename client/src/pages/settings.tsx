@@ -74,15 +74,17 @@ function SortableItem({ id, item, setting, description, onSettingChange }: Sorta
       <RadioGroup
         value={setting}
         onValueChange={(value) => onSettingChange(item, value)}
-        className="flex flex-col sm:flex-row gap-2 sm:gap-4"
+        className="flex flex-col gap-2"
       >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="required" id={`${item}-required`} />
-          <Label htmlFor={`${item}-required`} className="text-sm">Required</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="optional" id={`${item}-optional`} />
-          <Label htmlFor={`${item}-optional`} className="text-sm">Optional</Label>
+        <div className="flex gap-4">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="required" id={`${item}-required`} />
+            <Label htmlFor={`${item}-required`} className="text-sm">Required</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="optional" id={`${item}-optional`} />
+            <Label htmlFor={`${item}-optional`} className="text-sm">Optional</Label>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="hidden" id={`${item}-hidden`} />

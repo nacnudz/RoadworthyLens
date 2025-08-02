@@ -286,7 +286,7 @@ main {
     color: white !important;
   }
   
-  /* Make sure icons in dark buttons are white */
+  /* Make sure icons in dark buttons are white and fix hover states */
   .bg-primary svg, .bg-green-600 svg, .bg-red-600 svg, 
   .bg-gray-600 svg, .bg-gray-700 svg, .bg-destructive svg,
   .bg-card .bg-primary svg, .bg-card .bg-green-600 svg, .bg-card .bg-red-600 svg,
@@ -294,6 +294,33 @@ main {
     color: white !important;
     fill: white !important;
     stroke: white !important;
+  }
+
+  /* Fix icon hover states - prevent stroke-width changes that cause lines to disappear */
+  button:hover svg, button:focus svg,
+  .bg-primary:hover svg, .bg-green-600:hover svg, .bg-red-600:hover svg,
+  .bg-gray-600:hover svg, .bg-gray-700:hover svg, .bg-destructive:hover svg {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+    stroke-width: 2 !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure all button icons maintain visibility on hover */
+  button svg {
+    stroke-width: 2 !important;
+    transition: none !important;
+  }
+
+  /* Fix lucide icon hover states specifically */
+  button .lucide, .lucide {
+    stroke-width: 2 !important;
+  }
+
+  button:hover .lucide, button:focus .lucide {
+    stroke-width: 2 !important;
+    stroke: currentColor !important;
   }
   
   /* Fix text in gray background sections like Initial Inspection heading */
