@@ -88,20 +88,7 @@
 /* Ensure main content scrollbar doesn't overlap with bottom navigation */
 main {
   scrollbar-gutter: stable;
-  position: relative;
-}
-
-/* Create a mask to hide scrollbar behind bottom navigation */
-main::after {
-  content: '';
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 80px;
-  background: var(--surface);
-  z-index: 49; /* Just below bottom nav z-index */
-  pointer-events: none;
+  max-height: calc(100vh - 144px); /* Header height (64px) + bottom nav (80px) */
 }
 
 .dark {
