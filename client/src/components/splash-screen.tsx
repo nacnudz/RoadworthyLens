@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD_1754076026694.jpeg";
+import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD-Photoroom_1754111976984.png";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
           <img 
             src={logoImage} 
             alt="Roadworthy Inspection Logo" 
-            className="relative w-40 h-40 md:w-48 md:h-48 object-contain animate-float shadow-2xl rounded-2xl"
+            className="relative w-56 h-56 md:w-64 md:h-64 object-contain animate-float"
           />
         </div>
         
