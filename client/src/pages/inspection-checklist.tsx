@@ -49,6 +49,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   const [selectedResult, setSelectedResult] = useState<"pass" | "fail">("pass");
   const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<string>("");
+  const [isCompleting, setIsCompleting] = useState(false);
 
 
   const { data: currentInspection, isLoading: inspectionLoading } = useQuery<Inspection>({
@@ -125,6 +126,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         variant: "success",
       });
       setShowCompletionDialog(false);
+      setIsCompleting(false);
       
       // Auto-dismiss toast and close after 2 seconds
       setTimeout(() => {
@@ -137,6 +139,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
         description: error.message || "Failed to complete inspection",
         variant: "destructive",
       });
+      setIsCompleting(false);
     },
   });
 
@@ -276,6 +279,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
   const handleFinalizeCompletion = (status: "pass" | "fail") => {
     if (currentInspection.id) {
+      setIsCompleting(true);
       completeInspectionMutation.mutate({ 
         inspectionId: currentInspection.id, 
         status: status 
@@ -291,7 +295,26 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
+      {/* Full page loading overlay during completion */}
+      {isCompleting && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-sm mx-4 text-center space-y-4">
+            <div className="mx-auto w-16 h-16 relative">
+              <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-spin border-t-primary"></div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Completing Inspection
+              </h3>
+              <p className="text-sm text-gray-600">
+                {selectedResult === "pass" ? "Marking as passed" : "Marking as failed"} and saving all data...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Back Button */}
       <div className="mb-4">
         <Button 
@@ -537,7 +560,26 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
 
       {/* Completion Dialog */}
       <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-        <DialogContent className="dialog-shadow">
+        <DialogContent className="dialog-shadow relative">
+          {/* Loading overlay for entire dialog */}
+          {completeInspectionMutation.isPending && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+              <div className="text-center space-y-3">
+                <div className="mx-auto w-12 h-12 relative">
+                  <div className="w-12 h-12 border-4 border-primary/20 rounded-full animate-spin border-t-primary"></div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {selectedResult === "pass" ? "Marking as Passed" : "Marking as Failed"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Saving and backing up inspection...
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <DialogHeader>
             <DialogTitle>Complete Inspection</DialogTitle>
           </DialogHeader>
@@ -551,34 +593,44 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
                   setSelectedResult("pass");
                   handleFinalizeCompletion("pass");
                 }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white transition-all duration-200"
+                className="w-full bg-green-600 hover:bg-green-700 text-white transition-all duration-200 relative"
                 disabled={completeInspectionMutation.isPending}
               >
-                {completeInspectionMutation.isPending && selectedResult === "pass" ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Completing...
-                  </>
-                ) : (
-                  "Passed"
-                )}
+                <div className="flex items-center justify-center">
+                  {completeInspectionMutation.isPending && selectedResult === "pass" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Passed
+                    </>
+                  )}
+                </div>
               </Button>
               <Button 
                 onClick={() => {
                   setSelectedResult("fail");
                   handleFinalizeCompletion("fail");
                 }}
-                className="w-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200"
+                className="w-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200 relative"
                 disabled={completeInspectionMutation.isPending}
               >
-                {completeInspectionMutation.isPending && selectedResult === "fail" ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Completing...
-                  </>
-                ) : (
-                  "Failed"
-                )}
+                <div className="flex items-center justify-center">
+                  {completeInspectionMutation.isPending && selectedResult === "fail" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Failed
+                    </>
+                  )}
+                </div>
               </Button>
               <Button 
                 variant="outline" 
