@@ -135,6 +135,7 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Progress bars now calculate based only on required items from settings (not all 19 items)
 - Progress bars hidden for completed and uploaded inspections to reduce visual clutter
 - Button text changed from "Upload to VicRoads" to "Uploaded to VicRoads" for clarity
+- **Enhanced scrollbar styling (August 2025)**: Implemented dark grey scrollbar for better visibility, proper positioning to avoid overlap with bottom navigation, custom scrollbar styling for both webkit and Firefox browsers
 
 ## External Dependencies
 
@@ -187,3 +188,4 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Optional nginx reverse proxy for production with rate limiting and SSL support
 - Health checks and proper user permissions for security
 - Comprehensive deployment documentation in README.Docker.md
+- **Fixed Docker production build issues (August 2025)**: Created separate production entry point (`server/index-production.ts`) and custom build script (`build-production.js`) to avoid Vite dependency conflicts in production containers

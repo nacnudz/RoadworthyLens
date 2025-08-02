@@ -20,8 +20,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application using custom production build
+RUN node build-production.js
 
 # Production image
 FROM base AS runner
