@@ -6,7 +6,7 @@ interface SplashScreenProps {
   minDisplayTime?: number; // Minimum time to show splash in milliseconds
 }
 
-export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: SplashScreenProps) {
+export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: SplashScreenProps) {
   const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 2000 }: Spla
           <img 
             src={logoImage} 
             alt="Roadworthy Inspection Logo" 
-            className="relative w-56 h-56 md:w-64 md:h-64 object-contain animate-float"
+            className="relative w-72 h-72 md:w-80 md:h-80 object-contain animate-float"
           />
         </div>
         
