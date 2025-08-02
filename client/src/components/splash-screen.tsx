@@ -6,7 +6,7 @@ interface SplashScreenProps {
   minDisplayTime?: number; // Minimum time to show splash in milliseconds
 }
 
-export default function SplashScreen({ onComplete, minDisplayTime = 3000 }: SplashScreenProps) {
+export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: SplashScreenProps) {
   const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
