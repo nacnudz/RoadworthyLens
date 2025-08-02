@@ -5,7 +5,7 @@ services:
     build: .
     container_name: roadworthy-inspection
     #ports:
-    #  - "5000:5000"
+    #  - "5000:5005"
     environment:
       - NODE_ENV=production
       - PORT=5005

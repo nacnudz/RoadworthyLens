@@ -27,7 +27,7 @@ if [ "$1" = "--test" ]; then
   
   # Run health check
   docker run --rm --name roadworthy-test \
-    -p 5001:5000 \
+    -p 5001:5005 \
     -d roadworthy-inspection:latest
   
   # Wait for startup
