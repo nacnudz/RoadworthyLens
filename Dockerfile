@@ -33,7 +33,7 @@ RUN adduser --system --uid 1001 roadworthy
 
 # Copy built application
 COPY --from=builder --chown=roadworthy:nodejs /app/dist ./dist
-COPY --from=deps --chown=roadworthy:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=roadworthy:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=roadworthy:nodejs /app/package*.json ./
 
 # Create necessary directories

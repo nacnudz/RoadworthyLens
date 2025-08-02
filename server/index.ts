@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
@@ -17,7 +16,7 @@ app.use((req, res, next) => {
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
-  res.on("finish", () => {
+  res.on("finish", async () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
@@ -29,7 +28,18 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      // Log directly to console in production, use vite logger in development
+      if (app.get("env") === "development") {
+        try {
+          const { log } = await import("./vite.js");
+          log(logLine);
+        } catch {
+          console.log(logLine);
+        }
+      } else {
+        const { log } = await import("./vite-production.js");
+        log(logLine);
+      }
     }
   });
 
@@ -51,8 +61,10 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
+    const { serveStatic } = await import("./vite-production.js");
     serveStatic(app);
   }
 
@@ -65,7 +77,17 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  }, async () => {
+    if (app.get("env") === "development") {
+      try {
+        const { log } = await import("./vite.js");
+        log(`serving on port ${port}`);
+      } catch {
+        console.log(`serving on port ${port}`);
+      }
+    } else {
+      const { log } = await import("./vite-production.js");
+      log(`serving on port ${port}`);
+    }
   });
 })();
