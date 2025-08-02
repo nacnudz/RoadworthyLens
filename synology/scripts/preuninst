@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Pre-uninstallation script for Roadworthy Lens
+# This script runs before package removal
+
+PACKAGE_NAME="RoadworthyLens"
+PACKAGE_DIR="/var/packages/${PACKAGE_NAME}/target"
+
+echo "Stopping Roadworthy Lens service..."
+
+# Stop the service if it's running
+if [ -f "${PACKAGE_DIR}/scripts/start-stop-status" ]; then
+    "${PACKAGE_DIR}/scripts/start-stop-status" stop
+fi
+
+echo "Service stopped"
+exit 0

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Post-uninstallation script for Roadworthy Lens
+# This script runs after package removal
+
+PACKAGE_NAME="RoadworthyLens"
+USER="roadworthylens"
+GROUP="roadworthylens"
+
+echo "Cleaning up Roadworthy Lens..."
+
+# Remove symlink
+rm -f "/usr/local/bin/roadworthylens"
+
+# Note: We don't remove the user account or data directory
+# to preserve user data and avoid issues with file ownership
+
+echo "Roadworthy Lens has been uninstalled"
+echo ""
+echo "Note: User data has been preserved in case you reinstall"
+echo "To completely remove all data, manually delete:"
+echo "  /var/packages/${PACKAGE_NAME}/target/data/"
+echo "  /var/packages/${PACKAGE_NAME}/target/uploads/"
+echo "  /var/packages/${PACKAGE_NAME}/target/Completed/"
+
+exit 0

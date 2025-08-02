@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Post-installation script for Roadworthy Lens
+# This script runs after package installation
+
+PACKAGE_NAME="RoadworthyLens"
+PACKAGE_DIR="/var/packages/${PACKAGE_NAME}/target"
+USER="roadworthylens"
+GROUP="roadworthylens"
+
+echo "Setting up Roadworthy Lens..."
+
+# Create necessary directories
+mkdir -p "${PACKAGE_DIR}/data"
+mkdir -p "${PACKAGE_DIR}/uploads"
+mkdir -p "${PACKAGE_DIR}/Completed"
+mkdir -p "${PACKAGE_DIR}/logs"
+
+# Set proper permissions
+chown -R ${USER}:${GROUP} "${PACKAGE_DIR}"
+chmod +x "${PACKAGE_DIR}/scripts/start-stop-status"
+
+# Create symlink for easier access
+ln -sf "${PACKAGE_DIR}/scripts/start-stop-status" "/usr/local/bin/roadworthylens"
+
+# Initialize database on first install
+cd "${PACKAGE_DIR}"
+su - ${USER} -c "cd '${PACKAGE_DIR}' && DATABASE_URL='file:${PACKAGE_DIR}/data/database.sqlite' node -e 'require(\"./dist/index.js\")' --init-db" || true
+
+echo "Roadworthy Lens installation completed successfully"
+echo ""
+echo "Access your application at: http://[NAS-IP]:3333"
+echo "Default port: 3333"
+echo ""
+echo "To start/stop the service:"
+echo "  /usr/local/bin/roadworthylens start"
+echo "  /usr/local/bin/roadworthylens stop"
+echo "  /usr/local/bin/roadworthylens status"
+
+exit 0
