@@ -51,7 +51,7 @@ export default function SplashScreen({ onComplete, minDisplayTime = 4000 }: Spla
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex flex-col items-center justify-center transition-all duration-800 ${
+      className={`fixed inset-0 z-50 bg-surface flex flex-col items-center justify-center transition-all duration-800 ${
         fadeOut ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
       }`}
     >
