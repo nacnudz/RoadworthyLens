@@ -12,7 +12,7 @@ await build({
   bundle: true,
   platform: 'node',
   format: 'esm',
-  outdir: 'dist',
+  outfile: 'dist/index.js', // Explicitly name it index.js for Docker
   packages: 'external'
 });
 
