@@ -258,12 +258,14 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       <div className="p-4 space-y-6 max-w-md mx-auto">
         
         {/* Header with Logo */}
-        <div className="flex items-center justify-between">
-          <Logo className="h-10 w-auto" />
+        <div className="flex items-center">
+          <div className="flex-1">
+            <Logo className="h-10 w-auto" />
+          </div>
           <div className="flex-1 text-center">
             <h1 className="text-2xl font-bold text-on-surface">Roadworthy Tests</h1>
           </div>
-          <div className="w-10"></div> {/* Spacer for balance */}
+          <div className="flex-1"></div> {/* Spacer for perfect balance */}
         </div>
 
         {/* Quick Stats */}
