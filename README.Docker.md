@@ -8,22 +8,22 @@ This document explains how to deploy the Roadworthy Inspection App using Docker.
 
 1. **Basic deployment:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. **With nginx reverse proxy (production):**
    ```bash
-   docker-compose --profile production up -d
+   docker compose --profile production up -d
    ```
 
 3. **View logs:**
    ```bash
-   docker-compose logs -f roadworthy-app
+   docker compose logs -f roadworthy-app
    ```
 
 4. **Stop the application:**
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 ### Using Docker directly
@@ -76,7 +76,7 @@ The application uses three persistent volumes:
 
 2. **Deploy with production profile:**
    ```bash
-   docker-compose --profile production up -d
+   docker compose --profile production up -d
    ```
 
 ### Security Considerations
@@ -111,8 +111,8 @@ docker run --rm -v roadworthy_completed:/source -v $(pwd)/backup:/backup alpine 
 ```bash
 # Pull latest changes and rebuild
 git pull
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Health Monitoring
@@ -122,7 +122,7 @@ The application includes health checks:
 ```bash
 # Check container health
 docker ps
-docker-compose ps
+docker compose ps
 
 # View health check logs
 docker inspect roadworthy-inspection | grep Health -A 10
@@ -135,32 +135,32 @@ docker inspect roadworthy-inspection | grep Health -A 10
 1. **Permission errors:**
    ```bash
    # Fix volume permissions
-   docker-compose exec roadworthy-app chown -R roadworthy:nodejs /app/data /app/uploads /app/Completed
+   docker compose exec roadworthy-app chown -R roadworthy:nodejs /app/data /app/uploads /app/Completed
    ```
 
 2. **Database connection issues:**
    ```bash
    # Check database file exists and is writable
-   docker-compose exec roadworthy-app ls -la /app/data/
+   docker compose exec roadworthy-app ls -la /app/data/
    ```
 
 3. **Photo upload failures:**
    ```bash
    # Check uploads directory permissions
-   docker-compose exec roadworthy-app ls -la /app/uploads/
+   docker compose exec roadworthy-app ls -la /app/uploads/
    ```
 
 ### Logs
 
 ```bash
 # Application logs
-docker-compose logs -f roadworthy-app
+docker compose logs -f roadworthy-app
 
 # nginx logs (if using)
-docker-compose logs -f nginx
+docker compose logs -f nginx
 
 # Follow all logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## Development

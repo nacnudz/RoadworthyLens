@@ -189,6 +189,7 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Health checks and proper user permissions for security
 - Comprehensive deployment documentation in README.Docker.md
 - **Fixed Docker production build issues (August 2025)**: Created separate production entry point (`server/index-production.ts`) and custom build script (`build-production.js`) to avoid Vite dependency conflicts in production containers
+- **Updated to modern Docker Compose syntax (August 2025)**: All documentation now uses `docker compose` instead of deprecated `docker-compose` command
 
 ### Synology NAS Package
 - Complete Synology package (.spk) configuration for easy NAS deployment
