@@ -162,13 +162,26 @@
     color: hsl(0, 0%, 30%) !important;
   }
   
-  /* Fix dialog text colors */
+  /* Fix dialog text colors - more comprehensive targeting */
+  .dialog-shadow h2, 
+  .dialog-shadow .font-semibold,
+  .dialog-shadow .text-lg,
+  [data-state="open"] h2,
+  [data-state="open"] .font-semibold,
   [data-radix-dialog-content] h2, 
   [data-radix-dialog-content] .font-semibold,
   [data-radix-dialog-content] .text-lg {
     color: hsl(0, 0%, 10%) !important;
   }
   
+  .dialog-shadow p,
+  .dialog-shadow .text-sm,
+  .dialog-shadow .text-xs,
+  .dialog-shadow .text-gray-600,
+  .dialog-shadow .text-gray-500,
+  [data-state="open"] p,
+  [data-state="open"] .text-sm,
+  [data-state="open"] .text-xs,
   [data-radix-dialog-content] p,
   [data-radix-dialog-content] .text-sm,
   [data-radix-dialog-content] .text-xs,
@@ -177,8 +190,32 @@
     color: hsl(0, 0%, 25%) !important;
   }
   
+  .dialog-shadow label,
+  [data-state="open"] label,
   [data-radix-dialog-content] label {
     color: hsl(0, 0%, 15%) !important;
+  }
+  
+  /* Additional targeting for DialogHeader and DialogTitle */
+  [role="dialog"] h2,
+  [role="dialog"] .font-semibold,
+  [role="dialog"] header h2,
+  [data-radix-dialog-title],
+  .bg-background h2,
+  .bg-background .text-lg,
+  .bg-background .font-semibold {
+    color: hsl(0, 0%, 10%) !important;
+  }
+  
+  /* Force all dialog content to have dark text */
+  .bg-background * {
+    color: hsl(0, 0%, 15%) !important;
+  }
+  
+  /* But preserve button colors in backgrounds */
+  .bg-background .bg-primary, .bg-background .bg-green-600, .bg-background .bg-red-600, 
+  .bg-background .bg-gray-600, .bg-background .bg-gray-700, .bg-background .bg-destructive {
+    color: white !important;
   }
   
   /* Drop shadows for forms and cards */
