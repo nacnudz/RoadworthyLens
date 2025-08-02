@@ -291,7 +291,7 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
   };
 
   return (
-    <div className="relative h-screen bg-black">
+    <div className="relative w-full camera-container bg-black overflow-hidden">
       {/* Camera preview */}
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Always render video element */}
@@ -343,49 +343,56 @@ export default function CameraInterface({ inspectionId, itemName, onCancel, onPh
         )}
       </div>
 
-      {/* Item label */}
-      <div className="absolute top-4 left-4 right-4">
-        <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-center">
-          <p className="text-sm opacity-75">Taking photo for:</p>
-          <p className="text-lg font-medium">{itemName}</p>
+      {/* Item label - responsive positioning */}
+      <div className="absolute top-4 left-4 right-4 z-10">
+        <div className="bg-black/50 text-white px-3 py-2 rounded-lg text-center">
+          <p className="text-xs opacity-75">Taking photo for:</p>
+          <p className="text-sm font-medium">{itemName}</p>
         </div>
       </div>
 
-      {/* Camera controls */}
-      <div className="absolute bottom-0 left-0 right-0 p-6">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onCancel}
-            className="bg-white/20 text-white hover:bg-white/30 rounded-full p-3"
-          >
-            <X className="text-xl" />
-          </Button>
+      {/* Camera controls - responsive layout */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
+        {/* Safe area for controls with responsive spacing */}
+        <div className="px-4 py-2 camera-controls" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          <div className="flex items-center justify-between mb-2">
+            {/* Cancel button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onCancel}
+              className="bg-white/20 text-white hover:bg-white/30 active:bg-white/40 rounded-full w-14 h-14 p-0 flex-shrink-0 touch-manipulation"
+            >
+              <X className="text-xl" />
+            </Button>
 
-          <Button
-            onClick={handleTakePhoto}
-            disabled={isLoading || uploadPhotoMutation.isPending}
-            className="bg-white w-16 h-16 rounded-full flex items-center justify-center hover:bg-gray-100"
-          >
-            <div className="w-12 h-12 bg-primary rounded-full"></div>
-          </Button>
+            {/* Take photo button - large and centered */}
+            <Button
+              onClick={handleTakePhoto}
+              disabled={isLoading || uploadPhotoMutation.isPending}
+              className="bg-white w-20 h-20 rounded-full flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 flex-shrink-0 shadow-lg touch-manipulation"
+            >
+              <div className="w-14 h-14 bg-primary rounded-full"></div>
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={switchCamera}
-            disabled={isLoading || !cameraReady}
-            className="bg-white/20 text-white hover:bg-white/30 rounded-full p-3"
-          >
-            <RotateCcw className="text-xl" />
-          </Button>
-        </div>
+            {/* Switch camera button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={switchCamera}
+              disabled={isLoading || !cameraReady}
+              className="bg-white/20 text-white hover:bg-white/30 active:bg-white/40 rounded-full w-14 h-14 p-0 flex-shrink-0 touch-manipulation"
+            >
+              <RotateCcw className="text-xl" />
+            </Button>
+          </div>
 
-        <div className="text-center mt-4">
-          <p className="text-white text-sm">
-            {uploadPhotoMutation.isPending ? "Uploading..." : "Tap to capture"}
-          </p>
+          {/* Status text */}
+          <div className="text-center">
+            <p className="text-white text-xs">
+              {uploadPhotoMutation.isPending ? "Uploading..." : "Tap to capture"}
+            </p>
+          </div>
         </div>
       </div>
     </div>

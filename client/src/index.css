@@ -2,6 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile viewport and safe area support */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Camera interface specific mobile optimizations */
+.camera-container {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
+/* Mobile-specific adjustments for camera controls */
+@media screen and (max-height: 667px) {
+  .camera-controls {
+    padding-top: 0.25rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+@media screen and (min-height: 668px) and (max-height: 843px) {
+  .camera-controls {
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  }
+}
+
+@media screen and (min-height: 844px) {
+  .camera-controls {
+    padding-top: 0.75rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* iPhone 16 and similar tall devices */
+@media screen and (min-height: 900px) {
+  .camera-controls {
+    padding-top: 1rem;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Touch optimization */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
