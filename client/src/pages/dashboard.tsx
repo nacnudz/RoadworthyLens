@@ -263,7 +263,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
             <Logo className="h-10 w-auto" />
           </div>
           <div className="flex-1 text-center">
-            <h1 className="text-2xl font-bold text-on-surface">Roadworthy Tests</h1>
+            <h1 className="text-2xl font-bold text-on-surface" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)' }}>Roadworthy Tests</h1>
           </div>
           <div className="flex-1"></div> {/* Spacer for perfect balance */}
         </div>
@@ -290,7 +290,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
 
       {/* In Progress Inspections */}
       <section>
-        <h2 className="text-lg font-medium mb-3 text-on-surface">In Progress</h2>
+        <h2 className="text-lg font-medium mb-3 text-on-surface" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.3)' }}>In Progress</h2>
         {loadingInProgress ? (
           <>
             <InspectionCardSkeleton />
@@ -348,7 +348,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
 
       {/* Completed Inspections */}
       <section>
-        <h2 className="text-lg font-medium mb-3 text-on-surface">Recent Completed</h2>
+        <h2 className="text-lg font-medium mb-3 text-on-surface" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.3)' }}>Recent Completed</h2>
         {loadingCompleted ? (
           <>
             <InspectionCardSkeleton />
@@ -440,7 +440,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
 
       {/* Uploaded to VicRoads Inspections */}
       <section>
-        <h2 className="text-lg font-medium mb-3 text-on-surface">Uploaded to VicRoads</h2>
+        <h2 className="text-lg font-medium mb-3 text-on-surface" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.3)' }}>Uploaded to VicRoads</h2>
         {loadingUploaded ? (
           <>
             <InspectionCardSkeleton />
