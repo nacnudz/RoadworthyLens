@@ -10,7 +10,7 @@ export default function Header({}: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Roadworthy Lens" 
-            className="h-32 w-auto object-contain"
+            className="h-32 w-auto object-contain pt-2"
           />
         </div>
       </div>
