@@ -1,4 +1,4 @@
-import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD_1754076026694.jpeg";
+import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD-Photoroom_1754111811138.png";
 
 interface HeaderProps {}
 
@@ -10,7 +10,7 @@ export default function Header({}: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Roadworthy Lens" 
-            className="h-36 w-auto object-contain mix-blend-multiply"
+            className="h-36 w-auto object-contain"
           />
         </div>
       </div>
