@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CHECKLIST_ITEMS } from "@shared/schema";
-import { ArrowLeft, Upload, Loader2, GripVertical } from "lucide-react";
+import { ArrowLeft, Loader2, GripVertical } from "lucide-react";
 import Logo from "@/components/logo";
 import {
   DndContext,
@@ -109,54 +109,20 @@ export default function Settings({ onCancel }: SettingsProps) {
   const [localSettings, setLocalSettings] = useState<{
     checklistItemSettings: Record<string, string>;
     checklistItemOrder: string[];
-    logoUrl?: string;
   }>({
     checklistItemSettings: {},
-    checklistItemOrder: [...CHECKLIST_ITEMS].sort(),
-    logoUrl: ""
+    checklistItemOrder: [...CHECKLIST_ITEMS].sort()
   });
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize local settings when data loads
   useEffect(() => {
     if (settings) {
       setLocalSettings({
         checklistItemSettings: (settings as any).checklistItemSettings || {},
-        checklistItemOrder: (settings as any).checklistItemOrder || [...CHECKLIST_ITEMS].sort(),
-        logoUrl: (settings as any).logoUrl || ""
+        checklistItemOrder: (settings as any).checklistItemOrder || [...CHECKLIST_ITEMS].sort()
       });
     }
   }, [settings]);
-
-  const uploadLogoMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('logo', file);
-      const response = await fetch('/api/upload-logo', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) throw new Error('Upload failed');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setLocalSettings(prev => ({ ...prev, logoUrl: data.logoUrl }));
-      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
-      toast({
-        title: "Success",
-        description: "Logo uploaded successfully",
-        variant: "success",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload logo",
-        variant: "destructive",
-      });
-    },
-  });
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -197,26 +163,10 @@ export default function Settings({ onCancel }: SettingsProps) {
 
 
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        uploadLogoMutation.mutate(file);
-      } else {
-        toast({
-          title: "Error",
-          description: "Please select an image file",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   const handleSave = () => {
     const payload: any = {
       checklistItemSettings: localSettings.checklistItemSettings,
-      checklistItemOrder: localSettings.checklistItemOrder,
-      logoUrl: localSettings.logoUrl
+      checklistItemOrder: localSettings.checklistItemOrder
     };
     
     updateSettingsMutation.mutate(payload);
@@ -301,47 +251,7 @@ export default function Settings({ onCancel }: SettingsProps) {
         <CardContent className="p-6">
           <h2 className="text-xl font-medium mb-6 text-on-surface">Application Settings</h2>
           
-          {/* Logo Upload Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium mb-4 text-on-surface">Company Logo</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Upload your company logo to appear at the top of the app
-            </p>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <Logo className="h-12 w-auto border rounded p-1" />
-              </div>
-              
-              <div className="flex-1">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadLogoMutation.isPending}
-                  className="w-full"
-                >
-                  {uploadLogoMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Logo
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
+
 
           {/* Checklist Settings with Drag and Drop */}
           <div>
