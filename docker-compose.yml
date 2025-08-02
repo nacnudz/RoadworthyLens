@@ -25,6 +25,6 @@ services:
     networks:
       - proxy
 
- networks:
+networks:
   proxy:
     external: true
