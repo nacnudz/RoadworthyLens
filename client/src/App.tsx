@@ -55,10 +55,10 @@ function Router() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="h-screen bg-surface flex flex-col overflow-hidden">
       {currentView !== "camera" && <Header />}
       
-      <main className={currentView !== "camera" ? "pb-20" : ""}>
+      <main className={`flex-1 overflow-y-auto ${currentView !== "camera" ? "pb-20" : ""}`}>
         {currentView === "dashboard" && <Dashboard onOpenInspection={openInspection} onOpenSettings={() => setCurrentView("settings")} onCreateInspection={() => setCurrentView("new-inspection")} />}
         {currentView === "new-inspection" && <NewInspection onCancel={() => setCurrentView("dashboard")} onComplete={handleNewInspectionComplete} />}
         {currentView === "checklist" && <InspectionChecklist inspectionId={currentInspectionId} onShowCamera={showCamera} onClose={closeInspection} />}

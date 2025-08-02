@@ -254,7 +254,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
   }).length;
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="bg-surface text-on-surface">
       <div className="p-4 space-y-6 max-w-md mx-auto">
         
         {/* Header with Logo */}
