@@ -1,13 +1,19 @@
 # Docker Production Build Fix
 
-## Problem
-The Docker production build was failing with:
-```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /app/dist/index.js
-```
+## Problems
+1. **Vite Import Error**: Docker production build was failing with:
+   ```
+   Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /app/dist/index.js
+   ```
 
-## Root Cause
-The production build was bundling Vite development dependencies that are not available in the production Docker container.
+2. **Database Schema Error**: Fresh Docker containers failed with:
+   ```
+   SqliteError: no such table: settings
+   ```
+
+## Root Causes
+1. The production build was bundling Vite development dependencies not available in production containers
+2. The database migration system expected existing tables but didn't create initial schema for fresh deployments
 
 ## Solution
 Created a completely separate production build process:
@@ -27,16 +33,24 @@ Created a completely separate production build process:
 - Modified to use `node build-production.js` instead of `npm run build`
 - This ensures clean production builds without development dependencies
 
+### 4. Fixed Database Schema Creation
+- Updated `server/database.ts` with `initializeDatabase()` function
+- Creates all required tables using `CREATE TABLE IF NOT EXISTS`
+- Ensures fresh Docker containers have proper database schema
+- Maintains backward compatibility with existing databases
+
 ## Files Created/Modified
 - `server/index-production.ts` - Clean production server entry
 - `build-production.js` - Custom build script
 - `Dockerfile` - Updated build command
-- `server/vite-production.ts` - Production-only utilities (backup)
+- `server/database.ts` - Added schema initialization
+- `DOCKER-FIX.md` - Complete documentation
 
 ## Verification
 The production build now:
 - ✅ Contains no Vite imports
 - ✅ Runs successfully in Node.js production environment
+- ✅ Creates database schema automatically in fresh containers
 - ✅ Serves API endpoints correctly
 - ✅ Serves static frontend files
 - ✅ Compatible with Docker deployment
