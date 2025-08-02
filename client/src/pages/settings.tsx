@@ -256,9 +256,9 @@ export default function Settings({ onCancel }: SettingsProps) {
           {/* Checklist Settings with Drag and Drop */}
           <div>
             <h3 className="text-lg font-medium mb-4 text-on-surface">Checklist Item Requirements & Order</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Configure which items are required or optional for all inspections. Drag to reorder items.
-            </p>
+            <p className="text-sm text-gray-600 mb-6 text-center">Configure which items are required 
+            or optional for all inspections. 
+            Drag to reorder items.</p>
             
             <DndContext
               sensors={sensors}
