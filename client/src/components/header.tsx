@@ -1,4 +1,4 @@
-import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD-Photoroom_1754111811138.png";
+import logoImage from "@assets/g5_OHHI6Nzo2KgfUVpTJD-Photoroom_1754111976984.png";
 
 interface HeaderProps {}
 
