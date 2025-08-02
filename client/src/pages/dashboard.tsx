@@ -72,6 +72,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       toast({
         title: "Success",
         description: "Inspection uploaded to VicRoads successfully",
+        variant: "success",
       });
     },
     onError: (error: any) => {
@@ -96,6 +97,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       toast({
         title: "Success",
         description: "Inspection deleted successfully",
+        variant: "success",
       });
       setDeleteDialogOpen(false);
       setInspectionToDelete(null);
@@ -121,6 +123,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
       toast({
         title: "Success",
         description: "Retest created successfully",
+        variant: "success",
       });
       onOpenInspection(newInspection.id);
     },

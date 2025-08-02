@@ -146,6 +146,7 @@ export default function Settings({ onCancel }: SettingsProps) {
       toast({
         title: "Success",
         description: "Logo uploaded successfully",
+        variant: "success",
       });
     },
     onError: (error: any) => {
@@ -167,6 +168,7 @@ export default function Settings({ onCancel }: SettingsProps) {
       toast({
         title: "Success",
         description: "Settings saved successfully",
+        variant: "success",
       });
       
       // Auto-dismiss the success toast after 2 seconds

@@ -122,6 +122,7 @@ export default function InspectionChecklist({ inspectionId, onShowCamera, onClos
       toast({
         title: "Success",
         description: "Inspection completed successfully",
+        variant: "success",
       });
       setShowCompletionDialog(false);
       

@@ -39,6 +39,7 @@ export default function NewInspection({ onCancel, onComplete }: NewInspectionPro
       toast({
         title: "Success",
         description: "Inspection created successfully",
+        variant: "success",
       });
       onComplete(data.id);
     },
