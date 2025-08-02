@@ -187,11 +187,11 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pass":
-        return <Badge className="bg-secondary/10 text-secondary">Pass</Badge>;
+        return <Badge className="bg-green-600 text-white px-2 py-1 font-medium">Pass</Badge>;
       case "fail":
-        return <Badge className="bg-destructive/10 text-destructive">Fail</Badge>;
+        return <Badge className="bg-red-600 text-white px-2 py-1 font-medium">Fail</Badge>;
       default:
-        return <Badge className="bg-accent/10 text-accent">In Progress</Badge>;
+        return <Badge className="bg-primary text-white px-2 py-1 font-medium">Completed</Badge>;
     }
   };
 
@@ -374,7 +374,7 @@ export default function Dashboard({ onOpenInspection, onOpenSettings, onCreateIn
                     </div>
                     <div className="flex flex-col items-center">
                       {getStatusBadge(inspection.status)}
-                      <Badge className="bg-primary/10 text-primary mt-1 text-xs">Completed</Badge>
+                      <Badge className="bg-primary text-white mt-1 text-xs px-2 py-1 font-medium">Completed</Badge>
                     </div>
                   </div>
                   
