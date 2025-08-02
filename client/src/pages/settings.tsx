@@ -249,7 +249,7 @@ export default function Settings({ onCancel }: SettingsProps) {
     <div className="p-4">
       <Card className="form-shadow">
         <CardContent className="p-6">
-          <h2 className="text-xl font-medium mb-6 text-on-surface">Application Settings</h2>
+          <h2 className="text-xl font-medium mb-6 text-on-surface text-center">Application Settings</h2>
           
 
 
