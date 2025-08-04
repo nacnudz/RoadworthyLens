@@ -34,6 +34,12 @@ cp package-lock.json "${PACKAGE_DIR}/"
 # Copy synology package files
 cp -r synology/* "${PACKAGE_DIR}/"
 
+# Ensure proper directory structure for DSM 7.2
+mkdir -p "${PACKAGE_DIR}/conf"
+if [ ! -f "${PACKAGE_DIR}/conf/privilege" ]; then
+    cp synology/conf/privilege "${PACKAGE_DIR}/conf/" 2>/dev/null || true
+fi
+
 echo "4. Installing production dependencies..."
 cd "${PACKAGE_DIR}"
 npm ci --production --silent
@@ -58,8 +64,9 @@ echo "These should be placed in the synology/ directory before building"
 echo "7. Creating Synology package..."
 cd "${BUILD_DIR}"
 
-# Create the .spk package (tar.xz format)
-tar -czf "${PACKAGE_NAME}-${VERSION}.spk" package/
+# Create the .spk package in the correct format for DSM 7.2
+# Synology packages are actually tar files, not gzipped
+tar -cf "${PACKAGE_NAME}-${VERSION}.spk" package/
 
 cd - > /dev/null
 
@@ -76,7 +83,7 @@ echo "5. Access the app at http://[NAS-IP]:3333"
 echo ""
 echo "⚠️  Prerequisites:"
 echo "- Node.js must be installed via Package Center first"
-echo "- Minimum DSM version: 6.0"
+echo "- Minimum DSM version: 7.0 (Compatible with DSM 7.2+)"
 echo ""
 echo "🔧 Service Management:"
 echo "- Start: /usr/local/bin/roadworthylens start"

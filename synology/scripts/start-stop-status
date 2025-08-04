@@ -2,6 +2,7 @@
 
 # Synology package start-stop-status script for Roadworthy Lens
 # This script handles starting, stopping, and checking status of the application
+# Compatible with DSM 7.2+
 
 PACKAGE_NAME="RoadworthyLens"
 PACKAGE_DIR="/var/packages/${PACKAGE_NAME}/target"
