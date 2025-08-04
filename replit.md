@@ -199,3 +199,4 @@ Predefined inspection points: VIN, Under Vehicle, Vehicle on Hoist, Engine Bay, 
 - Comprehensive installation and configuration documentation
 - SQLite database with local file storage ideal for NAS environment
 - Automatic backup system for completed inspections
+- **Working build system (August 2025)**: Fixed build script to properly use production build process with all dependencies

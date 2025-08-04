@@ -17,11 +17,15 @@ echo "=================================================="
 rm -rf "${BUILD_DIR}"
 mkdir -p "${PACKAGE_DIR}"
 
-echo "1. Building production application..."
-# Build the application
-npm run build
+echo "1. Installing dependencies..."
+# Ensure all dependencies are installed, including dev dependencies for building
+npm ci
 
-echo "2. Copying application files..."
+echo "2. Building production application..."
+# Use the production build script that handles Docker builds properly
+node build-production.js
+
+echo "3. Copying application files..."
 # Copy built application
 cp -r dist/ "${PACKAGE_DIR}/"
 cp package.json "${PACKAGE_DIR}/"
@@ -30,12 +34,12 @@ cp package-lock.json "${PACKAGE_DIR}/"
 # Copy synology package files
 cp -r synology/* "${PACKAGE_DIR}/"
 
-echo "3. Installing production dependencies..."
+echo "4. Installing production dependencies..."
 cd "${PACKAGE_DIR}"
 npm ci --production --silent
 cd - > /dev/null
 
-echo "4. Setting up package structure..."
+echo "5. Setting up package structure..."
 # Make scripts executable
 chmod +x "${PACKAGE_DIR}/scripts/"*
 
@@ -45,13 +49,13 @@ mkdir -p "${PACKAGE_DIR}/uploads"
 mkdir -p "${PACKAGE_DIR}/Completed"
 mkdir -p "${PACKAGE_DIR}/logs"
 
-echo "5. Creating package icon..."
+echo "6. Creating package icon..."
 # Copy or create package icon (you'll need to replace this with actual icon)
 # For now, create a placeholder
 echo "Note: You need to add a real PACKAGE_ICON.PNG (72x72) and PACKAGE_ICON_256.PNG (256x256)"
 echo "These should be placed in the synology/ directory before building"
 
-echo "6. Creating Synology package..."
+echo "7. Creating Synology package..."
 cd "${BUILD_DIR}"
 
 # Create the .spk package (tar.xz format)

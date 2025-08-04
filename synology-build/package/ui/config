@@ -1,0 +1,15 @@
+{
+  ".url": {
+    "com.roadworthylens.app": {
+      "title": "Roadworthy Lens",
+      "desc": "Vehicle Inspection Management",
+      "icon": "images/icon_16.png",
+      "type": "url",
+      "protocol": "http",
+      "port": "3333",
+      "url": "/",
+      "allUsers": true,
+      "grantPrivilege": "local"
+    }
+  }
+}

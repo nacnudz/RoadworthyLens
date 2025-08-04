@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# Synology package start-stop-status script for Roadworthy Lens
+# This script handles starting, stopping, and checking status of the application
+
+PACKAGE_NAME="RoadworthyLens"
+PACKAGE_DIR="/var/packages/${PACKAGE_NAME}/target"
+USER="roadworthylens"
+DAEMON_FILE="${PACKAGE_DIR}/roadworthylens.pid"
+DAEMON_LOG="${PACKAGE_DIR}/logs/app.log"
+
+start_daemon ()
+{
+    # Create logs directory if it doesn't exist
+    mkdir -p "${PACKAGE_DIR}/logs"
+    
+    # Set up environment
+    export NODE_ENV=production
+    export DATABASE_URL="file:${PACKAGE_DIR}/data/database.sqlite"
+    export PORT=3333
+    export NODE_PATH="${PACKAGE_DIR}/node_modules"
+    
+    # Create data directory
+    mkdir -p "${PACKAGE_DIR}/data"
+    mkdir -p "${PACKAGE_DIR}/uploads"
+    mkdir -p "${PACKAGE_DIR}/Completed"
+    
+    # Change ownership to the service user
+    chown -R ${USER}:${USER} "${PACKAGE_DIR}/data"
+    chown -R ${USER}:${USER} "${PACKAGE_DIR}/uploads"
+    chown -R ${USER}:${USER} "${PACKAGE_DIR}/Completed"
+    chown -R ${USER}:${USER} "${PACKAGE_DIR}/logs"
+    
+    # Start the application
+    cd "${PACKAGE_DIR}"
+    su - ${USER} -c "cd '${PACKAGE_DIR}' && node dist/index.js > '${DAEMON_LOG}' 2>&1 & echo \$! > '${DAEMON_FILE}'"
+    
+    sleep 2
+    
+    if [ -f ${DAEMON_FILE} ] && kill -0 `cat ${DAEMON_FILE}` > /dev/null 2>&1; then
+        echo "Roadworthy Lens started successfully"
+        return 0
+    else
+        echo "Failed to start Roadworthy Lens"
+        return 1
+    fi
+}
+
+stop_daemon ()
+{
+    if [ -f ${DAEMON_FILE} ]; then
+        PID=`cat ${DAEMON_FILE}`
+        kill $PID > /dev/null 2>&1
+        
+        # Wait for process to stop
+        for i in {1..10}; do
+            if ! kill -0 $PID > /dev/null 2>&1; then
+                break
+            fi
+            sleep 1
+        done
+        
+        # Force kill if still running
+        if kill -0 $PID > /dev/null 2>&1; then
+            kill -9 $PID > /dev/null 2>&1
+        fi
+        
+        rm -f ${DAEMON_FILE}
+        echo "Roadworthy Lens stopped"
+        return 0
+    else
+        echo "Roadworthy Lens is not running"
+        return 0
+    fi
+}
+
+daemon_status ()
+{
+    if [ -f ${DAEMON_FILE} ] && kill -0 `cat ${DAEMON_FILE}` > /dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+case $1 in
+    start)
+        if daemon_status; then
+            echo "Roadworthy Lens is already running"
+            exit 0
+        else
+            echo "Starting Roadworthy Lens..."
+            start_daemon
+            exit $?
+        fi
+        ;;
+    stop)
+        if daemon_status; then
+            echo "Stopping Roadworthy Lens..."
+            stop_daemon
+            exit $?
+        else
+            echo "Roadworthy Lens is not running"
+            exit 0
+        fi
+        ;;
+    status)
+        if daemon_status; then
+            echo "Roadworthy Lens is running"
+            exit 0
+        else
+            echo "Roadworthy Lens is not running"
+            exit 1
+        fi
+        ;;
+    log)
+        if [ -f ${DAEMON_LOG} ]; then
+            echo "${DAEMON_LOG}"
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|log}"
+        exit 1
+        ;;
+esac
